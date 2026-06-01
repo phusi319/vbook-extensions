@@ -1,23 +1,22 @@
 load('config.js');
 
 function execute(url, page) {
-    let targetUrl = url;
+    var requestUrl = BASE_URL + url;
     if (page && page.length > 0) {
-        targetUrl = page;
+        requestUrl = page;
     }
 
-    let response = fetch(targetUrl);
-    if (response.ok) {
-        let doc = response.html();
-        let list = [];
+    var doc = fetch(requestUrl).html();
+    if (doc) {
+        var list = [];
 
         doc.select(".item_home").forEach(function(e) {
-            let a = e.select("a.book_name").first();
-            let img = e.select(".thumbblock img").first();
-            let chap = e.select(".fs14.cl99").first();
+            var a = e.select("a.book_name").first();
+            var img = e.select(".thumbblock img").first();
+            var chap = e.select(".fs14.cl99").first();
 
             if (a) {
-                let cover = "";
+                var cover = "";
                 if (img) {
                     cover = img.attr("data-src");
                     if (!cover || cover.length === 0) {
@@ -32,18 +31,21 @@ function execute(url, page) {
                     name: a.text(),
                     link: a.attr("href"),
                     cover: cover,
-                    description: chap ? chap.text() : ""
+                    description: chap ? chap.text() : "",
+                    host: BASE_URL
                 });
             }
         });
 
-        let next = null;
-        let nextLink = doc.select(".pagination a[rel=next]").first();
+        // Find next page
+        var next = null;
+        var nextLink = doc.select(".pagination a[rel=next]").first();
         if (nextLink) {
             next = nextLink.attr("href");
         }
 
         return Response.success(list, next);
     }
+
     return null;
 }
