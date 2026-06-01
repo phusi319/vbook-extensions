@@ -1,0 +1,6 @@
+let BASE_URL = 'https://foxtruyen2.com';
+try {
+    if (CONFIG_URL) {
+        BASE_URL = CONFIG_URL;
+    }
+} catch (e) {}

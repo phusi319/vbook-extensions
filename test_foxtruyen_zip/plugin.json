@@ -1,0 +1,21 @@
+{
+  "metadata": {
+    "name": "FoxTruyen",
+    "author": "sion",
+    "version": 5,
+    "source": "https://foxtruyen2.com",
+    "regexp": "(www.)?foxtruyen[0-9]*.com/truyen-tranh/[^/]+\\.html$",
+    "description": "Đọc truyện tranh trên FoxTruyen - manga, manhwa, manhua",
+    "locale": "vi_VN",
+    "language": "javascript",
+    "type": "comic"
+  },
+  "script": {
+    "home": "home.js",
+    "genre": "genre.js",
+    "detail": "detail.js",
+    "search": "search.js",
+    "toc": "toc.js",
+    "chap": "chap.js"
+  }
+}
