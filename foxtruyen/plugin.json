@@ -2,7 +2,7 @@
   "metadata": {
     "name": "FoxTruyen",
     "author": "sion",
-    "version": 2,
+    "version": 3,
     "source": "https://foxtruyen2.com",
     "regexp": "(www.)?foxtruyen[0-9]*.com/truyen-tranh/[^/]+\\.html$",
     "description": "Đọc truyện tranh trên FoxTruyen - manga, manhwa, manhua",

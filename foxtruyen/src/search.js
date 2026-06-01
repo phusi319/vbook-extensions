@@ -8,10 +8,6 @@ function execute(key, page) {
     var doc = fetch(url).html();
     if (doc) {
         var list = [];
-        var next = doc.select(".pagination").select("a:has(.active) + a").last();
-        if (next) {
-            next = next.text();
-        }
 
         doc.select(".item_home").forEach(function(e) {
             var a = e.select("a.book_name").first();
@@ -39,6 +35,20 @@ function execute(key, page) {
                 });
             }
         });
+
+        // Pagination: check if there's a next page-item after active
+        var next = null;
+        var activeItem = doc.select(".page-item.active").first();
+        if (activeItem) {
+            var nextSibling = activeItem.nextElementSibling();
+            if (nextSibling) {
+                var nextA = nextSibling.select("a").first();
+                if (nextA && nextA.text().length > 0) {
+                    var pageNum = parseInt(page);
+                    next = String(pageNum + 1);
+                }
+            }
+        }
 
         return Response.success(list, next);
     }

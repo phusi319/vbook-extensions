@@ -1,14 +1,32 @@
 load('config.js');
 
 function execute(url, page) {
-    var requestUrl = BASE_URL + url;
+    var requestUrl = url;
+    // If url is relative, prepend BASE_URL
+    if (url.indexOf("http") !== 0) {
+        requestUrl = BASE_URL + url;
+    }
     if (page && page.length > 0) {
         requestUrl = page;
+        if (page.indexOf("http") !== 0) {
+            requestUrl = BASE_URL + page;
+        }
     }
 
     var doc = fetch(requestUrl).html();
     if (doc) {
         var list = [];
+        var next = null;
+        var activeItem = doc.select(".page-item.active").first();
+        if (activeItem) {
+            var nextSibling = activeItem.nextElementSibling();
+            if (nextSibling) {
+                var nextA = nextSibling.select("a").first();
+                if (nextA) {
+                    next = nextA.attr("href");
+                }
+            }
+        }
 
         doc.select(".item_home").forEach(function(e) {
             var a = e.select("a.book_name").first();
@@ -36,13 +54,6 @@ function execute(url, page) {
                 });
             }
         });
-
-        // Find next page
-        var next = null;
-        var nextLink = doc.select(".pagination a[rel=next]").first();
-        if (nextLink) {
-            next = nextLink.attr("href");
-        }
 
         return Response.success(list, next);
     }

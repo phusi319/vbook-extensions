@@ -41,28 +41,28 @@ function execute(url) {
             }
         }
 
-        // Status
-        var status = "";
-        var statusEl = doc.select(".fx-status").first();
-        if (statusEl) {
-            status = statusEl.text();
-        }
-
         // Name
         var name = "";
         var h1 = doc.select(".fx-info__title").first();
         if (!h1) h1 = doc.select("h1").first();
         if (h1) name = h1.text();
 
-        // Author
+        // Author - get from first .fx-meta__val which contains .org link
         var author = "";
-        doc.select(".fx-meta__row").forEach(function(e) {
-            var label = e.select(".fx-meta__label").first();
-            if (label && label.text().indexOf("Tac gia") !== -1) {
-                var val = e.select(".fx-meta__val").first();
-                if (val) author = val.text();
+        var authorEl = doc.select(".fx-meta__val a.org").first();
+        if (authorEl) {
+            author = authorEl.text();
+        }
+
+        // Status - check fx-status class
+        var ongoing = true;
+        var statusEl = doc.select(".fx-status").first();
+        if (statusEl) {
+            var statusText = statusEl.text().toLowerCase();
+            if (statusText.indexOf("hoan") > -1) {
+                ongoing = false;
             }
-        });
+        }
 
         // Description
         var description = "";
@@ -76,7 +76,7 @@ function execute(url) {
             author: author,
             description: description,
             detail: buildDetail(doc),
-            ongoing: status.indexOf("Hoan Thanh") === -1,
+            ongoing: ongoing,
             genres: getGenres(doc)
         });
     }
