@@ -59,7 +59,7 @@ function execute(url) {
         var statusEl = doc.select(".fx-status").first();
         if (statusEl) {
             var statusText = statusEl.text().toLowerCase();
-            if (statusText.indexOf("hoan") > -1) {
+            if (statusText.indexOf("hoan") > -1 || statusText.indexOf("full") > -1) {
                 ongoing = false;
             }
         }
