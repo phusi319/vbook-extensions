@@ -1,1 +1,1 @@
-const BASE_URL = 'https://mangadot.net';
+var BASE_URL = 'https://mangadot.net';
