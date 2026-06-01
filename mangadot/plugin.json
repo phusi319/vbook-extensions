@@ -1,0 +1,21 @@
+{
+  "metadata": {
+    "name": "Mangadot",
+    "author": "Antigravity",
+    "version": 1,
+    "source": "https://mangadot.net",
+    "regexp": "mangadot\\.net",
+    "description": "Đọc truyện tranh trên Mangadot.net",
+    "local": "vi",
+    "language": "javascript",
+    "type": "comic",
+    "icon": "https://mangadot.net/favicon.ico"
+  },
+  "script": {
+    "home": "src/home.js",
+    "gen": "src/gen.js",
+    "detail": "src/detail.js",
+    "chap": "src/chap.js",
+    "search": "src/search.js"
+  }
+}
