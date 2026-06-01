@@ -1,3 +1,4 @@
+load('config.js');
 function execute(url) {
     var doc = Http.get(url).html();
     var el = doc.select('a[href*="/chapter/"]');

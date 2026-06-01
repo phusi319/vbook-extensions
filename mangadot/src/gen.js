@@ -1,3 +1,4 @@
+load('config.js');
 function execute(url, page) {
     if (!page) page = '1';
     var doc = Http.get(url + "?page=" + page).html();
