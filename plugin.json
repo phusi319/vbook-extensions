@@ -7,8 +7,8 @@
     {
       "name": "FoxTruyen",
       "author": "phusi319",
-      "path": "https://raw.githubusercontent.com/phusi319/vbook-extensions/main/foxtruyen/foxtruyen_v6.zip",
-      "version": 6,
+      "path": "https://raw.githubusercontent.com/phusi319/vbook-extensions/main/foxtruyen/foxtruyen_v7.zip",
+      "version": 7,
       "source": "https://foxtruyen2.com",
       "icon": "https://raw.githubusercontent.com/phusi319/vbook-extensions/main/foxtruyen/icon.png",
       "description": "Đọc truyện tranh trên FoxTruyen - manga, manhwa, manhua",
@@ -18,8 +18,8 @@
     {
       "name": "Mangadot",
       "author": "phusi319",
-      "path": "https://raw.githubusercontent.com/phusi319/vbook-extensions/main/mangadot/mangadot_v6.zip",
-      "version": 6,
+      "path": "https://raw.githubusercontent.com/phusi319/vbook-extensions/main/mangadot/mangadot_v7.zip",
+      "version": 7,
       "source": "https://mangadot.net",
       "icon": "https://raw.githubusercontent.com/phusi319/vbook-extensions/main/mangadot/icon.png",
       "description": "Đọc truyện tranh trên Mangadot.net với tính năng phân chia nguồn dịch",

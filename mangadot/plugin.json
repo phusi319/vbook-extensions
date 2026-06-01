@@ -2,7 +2,7 @@
   "metadata": {
     "name": "Mangadot",
     "author": "Antigravity",
-    "version": 6,
+    "version": 7,
     "source": "https://mangadot.net",
     "regexp": "mangadot\\.net",
     "description": "Đọc truyện tranh trên Mangadot.net",
