@@ -20,8 +20,34 @@ plugin.zip
     └── chap.js              # Nội dung chương (ảnh)
 ```
 
-> [!WARNING]
-> **Lỗi thường gặp khi nén zip**: Phải chọn tất cả các file (`icon.png`, `plugin.json`, `src`) rồi nén lại. KHÔNG nén thư mục cha (ví dụ nén thư mục `foxtruyen` thành `foxtruyen.zip`), vBook sẽ không đọc được mã nguồn.
+> [!CAUTION]
+> **TUYỆT ĐỐI KHÔNG dùng PowerShell `Compress-Archive` để nén ZIP!**
+> vBook (Android) dùng Java `ZipInputStream` để giải nén. PowerShell `Compress-Archive` (.NET) tạo file ZIP với metadata không tương thích khiến vBook **treo đứng khi tải extension** (loading vô tận, không báo lỗi).
+>
+> **Cách nén đúng** — Dùng một trong hai cách sau:
+> 1. **Python `zipfile` (khuyên dùng):** Chạy script `make_zip.py` có sẵn trong repo.
+> 2. **Java `ExtensionMaker.jar`:** Tool chính thức từ repo gốc Darkrai9x.
+>
+> **Lỗi thường gặp khi nén zip**: Phải chọn tất cả các file (`icon.png`, `plugin.json`, `src/`) rồi nén lại. KHÔNG nén thư mục cha (ví dụ nén thư mục `foxtruyen` thành `foxtruyen.zip`). Thứ tự entry bên trong ZIP phải là: `plugin.json` → `icon.png` → `src/*.js`.
+
+### Script nén chuẩn (`make_zip.py`)
+```python
+import zipfile, os, sys
+
+def make_plugin_zip(ext_dir, output_zip):
+    with zipfile.ZipFile(output_zip, 'w', zipfile.ZIP_DEFLATED) as zf:
+        zf.write(os.path.join(ext_dir, 'plugin.json'), 'plugin.json')
+        icon = os.path.join(ext_dir, 'icon.png')
+        if os.path.exists(icon):
+            zf.write(icon, 'icon.png')
+        src_dir = os.path.join(ext_dir, 'src')
+        for f in sorted(os.listdir(src_dir)):
+            zf.write(os.path.join(src_dir, f), 'src/' + f)
+
+if __name__ == '__main__':
+    make_plugin_zip(sys.argv[1], sys.argv[2])
+# Cách dùng: python make_zip.py mangadot mangadot/plugin.zip
+```
 
 ---
 
@@ -150,5 +176,8 @@ for (var i = el.size() - 1; i >= 0; i--) { // Chạy từ dưới lên
 Trước khi commit và push lên repository, luôn thực hiện các bước sau:
 - [ ] Tăng số `version` trong cả `plugin.json` (source file) VÀ `plugin.json` của repo registry (vbook-extensions).
 - [ ] Bật/tắt console.log (nếu có dùng để debug thì nên bỏ đi cho sạch code).
-- [ ] Xóa zip cũ, dùng script gom chính xác `plugin.json`, `icon.png`, và thư mục `src/` vào root của file zip mới.
+- [ ] **Nén ZIP bằng Python** (`python make_zip.py <thư_mục> <output.zip>`). **TUYỆT ĐỐI KHÔNG dùng PowerShell `Compress-Archive`** — file ZIP tạo bởi PowerShell không tương thích với Java `ZipInputStream` của vBook, gây treo app.
 - [ ] Thêm Host (`host: BASE_URL`) vào tất cả các đối tượng trong list (`gen.js`, `search.js`, `toc.js`, `detail.js`). vBook cần trường này để gọi ảnh hoặc nhận diện host.
+- [ ] **Block `"script"` trong `plugin.json` phải khai báo đủ 6 key bắt buộc**: `home`, `genre`, `detail`, `search`, `toc`, `chap`. Thiếu bất kỳ key nào sẽ khiến vBook parse JSON thất bại và không cài được extension.
+- [ ] **Toàn bộ file JS phải dùng `var`**, KHÔNG dùng `const` hoặc `let`. Rhino engine trên Android cũ không hỗ trợ ES6 và sẽ văng lỗi `SyntaxError` ngay khi load.
+- [ ] Mỗi extension phải có file `config.js` khai báo `var BASE_URL = '...'` và mọi file JS khác phải có dòng `load('config.js');` ở đầu file.
