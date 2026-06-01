@@ -2,20 +2,20 @@
   "metadata": {
     "name": "Mangadot",
     "author": "Antigravity",
-    "version": 2,
+    "version": 1,
     "source": "https://mangadot.net",
     "regexp": "mangadot\\.net",
     "description": "Đọc truyện tranh trên Mangadot.net",
-    "locale": "vi_VN",
+    "local": "vi",
     "language": "javascript",
     "type": "comic",
     "icon": "https://mangadot.net/favicon.ico"
   },
   "script": {
-    "home": "home.js",
-    "gen": "gen.js",
-    "detail": "detail.js",
-    "chap": "chap.js",
-    "search": "search.js"
+    "home": "src/home.js",
+    "gen": "src/gen.js",
+    "detail": "src/detail.js",
+    "chap": "src/chap.js",
+    "search": "src/search.js"
   }
 }
