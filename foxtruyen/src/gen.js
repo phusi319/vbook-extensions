@@ -19,13 +19,13 @@ function execute(url, page) {
         var next = null;
         var activeItem = doc.select(".page-item.active").first();
         if (activeItem) {
-            var nextSibling = activeItem.nextElementSibling();
-            if (nextSibling) {
-                var nextA = nextSibling.select("a").first();
-                if (nextA) {
-                    next = nextA.attr("href");
+            var currentPage = parseInt(activeItem.text());
+            var nextText = String(currentPage + 1);
+            doc.select(".page-item").forEach(function(e) {
+                if (e.text() === nextText) {
+                    next = e.attr("href");
                 }
-            }
+            });
         }
 
         doc.select(".item_home").forEach(function(e) {

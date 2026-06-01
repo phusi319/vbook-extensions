@@ -36,19 +36,14 @@ function execute(key, page) {
             }
         });
 
-        // Pagination: check if there's a next page-item after active
+        // Pagination: check if there's a next page-item
         var next = null;
-        var activeItem = doc.select(".page-item.active").first();
-        if (activeItem) {
-            var nextSibling = activeItem.nextElementSibling();
-            if (nextSibling) {
-                var nextA = nextSibling.select("a").first();
-                if (nextA && nextA.text().length > 0) {
-                    var pageNum = parseInt(page);
-                    next = String(pageNum + 1);
-                }
+        var nextText = String(parseInt(page) + 1);
+        doc.select(".page-item").forEach(function(e) {
+            if (e.text() === nextText) {
+                next = nextText;
             }
-        }
+        });
 
         return Response.success(list, next);
     }
