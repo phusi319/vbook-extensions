@@ -1,0 +1,19 @@
+{
+  "metadata": {
+    "author": "phusi319",
+    "description": "Extension cho FoxTruyen"
+  },
+  "data": [
+    {
+      "name": "FoxTruyen",
+      "author": "phusi319",
+      "path": "https://raw.githubusercontent.com/phusi319/vbook-extensions/main/foxtruyen/plugin.zip",
+      "version": 1,
+      "source": "https://foxtruyen2.com",
+      "icon": "https://raw.githubusercontent.com/phusi319/vbook-extensions/main/foxtruyen/icon.png",
+      "description": "Đọc truyện tranh trên FoxTruyen - manga, manhwa, manhua",
+      "type": "comic",
+      "locale": "vi_VN"
+    }
+  ]
+}
