@@ -1,63 +1,72 @@
 load('config.js');
 function execute(url) {
-    var doc = Http.get(url).html();
-    var el = doc.select('a[href*="/chapter/"]');
+    var requestUrl = url;
+    if (url.indexOf('http') !== 0) {
+        requestUrl = BASE_URL + url;
+    }
+    var doc = Http.get(requestUrl).html();
+
+    var chapLinks = doc.select('a.relative.block[href^=/chapter/]');
     var data = [];
     var seen = {};
-    
-    for (var i = 0; i < el.size(); i++) {
-        var e = el.get(i);
-        var text = e.text().trim();
-        var href = e.attr('href');
-        
-        // Cấu trúc Mangadot: Thẻ <a> bọc ngoài thường rỗng
-        if (!text && href && href.indexOf('start reading') === -1) {
-            // Lấy group name
-            var desktopRow = e.nextElementSibling(); // Element liền kề
-            var groupName = "";
-            if (desktopRow) {
-                var groupEl = desktopRow.select('a[href*="/group/"]').first();
-                if (groupEl) groupName = groupEl.text().trim();
-                
-                // Tên chapter thường nằm ở row mobile bên dưới nó
-                var mobileRow = desktopRow.nextElementSibling();
-                var chapName = "";
-                if (mobileRow) {
-                    var nameEl = mobileRow.select('.font-mono.text-white\\/55').first();
-                    if (nameEl) chapName = nameEl.text().trim();
-                }
-                
-                if (chapName) {
-                    var fullName = chapName;
-                    if (groupName) fullName += " [" + groupName + "]";
-                    
-                    if (!seen[href]) {
-                        seen[href] = true;
-                        data.push({
-                            name: fullName,
-                            url: href,
-                            host: "https://mangadot.net"
-                        });
-                    }
-                }
+
+    for (var i = 0; i < chapLinks.size(); i++) {
+        var chapEl = chapLinks.get(i);
+        var chapHref = chapEl.attr('href');
+
+        // Remove query params
+        var cleanHref = chapHref;
+        var qIdx = chapHref.indexOf('?');
+        if (qIdx !== -1) {
+            cleanHref = chapHref.substring(0, qIdx);
+        }
+
+        if (seen[cleanHref]) continue;
+        seen[cleanHref] = true;
+
+        // Chapter number
+        var chapName = '';
+        var chapMonos = chapEl.select('span.font-mono');
+        for (var m = 0; m < chapMonos.size(); m++) {
+            var monoText = chapMonos.get(m).text().trim();
+            if (monoText.indexOf('Ch') > -1) {
+                chapName = monoText;
+                break;
             }
         }
-    }
-    
-    // Nếu thuật toán trên thất bại (fallback cho các truyện ít chapter/giao diện cũ)
-    if (data.length === 0) {
-        for (var i = 0; i < el.size(); i++) {
-            var e = el.get(i);
-            var text = e.text().trim();
-            if (text && text.toLowerCase().indexOf("start reading") === -1 && text.toLowerCase().indexOf("upload") === -1) {
-                data.push({
-                    name: text,
-                    url: e.attr('href'),
-                    host: "https://mangadot.net"
-                });
-            }
+
+        // Chapter title
+        var chapTitle = '';
+        var titleEl = chapEl.select('span.font-medium').first();
+        if (titleEl) {
+            chapTitle = titleEl.text().trim();
         }
+
+        if (chapName && chapTitle) {
+            chapName = chapName + ' - ' + chapTitle;
+        } else if (!chapName && chapTitle) {
+            chapName = chapTitle;
+        } else if (!chapName) {
+            chapName = 'Chapter ' + (i + 1);
+        }
+
+        // Group
+        var groupName = '';
+        var groupEl = chapEl.select('a[href^=/group/]').first();
+        if (groupEl) {
+            groupName = groupEl.text().trim();
+        }
+        if (groupName) {
+            chapName = chapName + ' [' + groupName + ']';
+        }
+
+        data.push({
+            name: chapName,
+            url: BASE_URL + cleanHref,
+            host: BASE_URL
+        });
     }
-    
-    return Response.success(data.reverse()); // Reverse để chapter 1 lên đầu
+
+    // Reverse: chương cũ nhất lên đầu
+    return Response.success(data.reverse());
 }
