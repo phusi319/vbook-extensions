@@ -2,7 +2,7 @@
   "metadata": {
     "name": "Mangadot",
     "author": "phusi319",
-    "version": 26,
+    "version": 27,
     "source": "https://mangadot.net",
     "regexp": "(www.)?mangadot\\.net/manga/\\d+/?",
     "description": "Đọc truyện tranh trên Mangadot.net",

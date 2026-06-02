@@ -16,12 +16,20 @@ function execute(url, page) {
         requestUrl = BASE_URL + url;
     }
 
+    // Map view-all pages that don't work via turbo to API search
+    if (requestUrl.indexOf('/view-all/new-series') > -1) {
+        return searchApi(BASE_URL + '/search?sortBy=date_added&sortOrder=desc', page);
+    }
+    if (requestUrl.indexOf('/view-all/completed') > -1) {
+        return searchApi(BASE_URL + '/search?status=completed', page);
+    }
+
     // Detect if this is a search/genre URL → use REST API
     if (requestUrl.indexOf('/search') > -1) {
         return searchApi(requestUrl, page);
     }
 
-    // For view-all pages → try turbo .data
+    // For view-all pages (latest-updates, popular) → turbo .data
     return viewAllTurbo(requestUrl, page);
 }
 
