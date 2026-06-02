@@ -89,31 +89,50 @@ function findInTurbo(obj, key) {
 
     // BFS search
     var queue = [];
-    var visited = [];
+    var visitedObjs = [];
     queue.push(obj);
-    visited.push(obj);
+    
+    // Use a unique marker to avoid O(N^2) array scans in ES5
+    var marker = '__v_' + Math.random().toString(36).substr(2, 9);
+    obj[marker] = true;
+    visitedObjs.push(obj);
+
+    var result = null;
 
     while (queue.length > 0) {
         var current = queue.shift();
         if (!current || typeof current !== 'object') continue;
 
         var ks = Object.keys(current);
+        var found = false;
         for (var i = 0; i < ks.length; i++) {
-            if (ks[i] === key) return current[ks[i]];
-            var child = current[ks[i]];
+            var k = ks[i];
+            if (k === marker) continue;
+            
+            if (k === key) {
+                result = current[k];
+                found = true;
+                break;
+            }
+            
+            var child = current[k];
             if (child && typeof child === 'object') {
-                var found = false;
-                for (var v = 0; v < visited.length; v++) {
-                    if (visited[v] === child) { found = true; break; }
-                }
-                if (!found) {
-                    visited.push(child);
+                if (!child[marker]) {
+                    child[marker] = true;
+                    visitedObjs.push(child);
                     queue.push(child);
                 }
             }
         }
+        if (found) break;
     }
-    return null;
+
+    // Cleanup markers
+    for (var i = 0; i < visitedObjs.length; i++) {
+        delete visitedObjs[i][marker];
+    }
+
+    return result;
 }
 
 /**
