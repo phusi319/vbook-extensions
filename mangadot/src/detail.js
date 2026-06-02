@@ -104,6 +104,7 @@ function execute(url) {
         cover: cover,
         author: author,
         description: description,
+        detail: author,
         host: BASE_URL,
         ongoing: ongoing,
         genres: genres
