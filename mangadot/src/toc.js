@@ -1,49 +1,60 @@
-function execute(url) {
-    var BASE_URL = 'https://mangadot.net';
-    var requestUrl = url.replace(/\/$/, "");
-    
-    // Extract Manga ID: /manga/351 -> 351
-    var mangaIdMatch = requestUrl.match(/\/manga\/(\d+)/);
-    var mangaId = mangaIdMatch ? mangaIdMatch[1] : '';
+load('config.js');
 
-    var chapters = [];
+/**
+ * toc.js — Return flat chapter list from API.
+ * Uses /api/manga/{id}/chapters/list for clean JSON data.
+ *
+ * @param {string} url - Manga page URL like https://mangadot.net/manga/351
+ */
+function execute(url) {
+    var requestUrl = url;
+    if (url.indexOf('http') !== 0) {
+        requestUrl = BASE_URL + url;
+    }
+
+    // Extract manga ID from URL
+    var mangaId = '';
+    var idMatch = requestUrl.match(/\/manga\/(\d+)/);
+    if (idMatch) {
+        mangaId = idMatch[1];
+    }
+
+    var data = [];
 
     if (mangaId) {
-        var apiChapUrl = BASE_URL + '/api/manga/' + mangaId + '/chapters/list';
-        var chapJson = Http.get(apiChapUrl).string();
-        if (chapJson) {
-            try {
-                var list = JSON.parse(chapJson);
-                if (Array.isArray(list)) {
-                    for (var i = 0; i < list.length; i++) {
-                        var ch = list[i];
-                        
-                        var chapName = '';
-                        if (ch.chapter_number != null) {
-                            chapName = 'Chapter ' + ch.chapter_number;
-                        } else {
-                            chapName = 'Chapter ' + (i + 1);
+        try {
+            var resp = fetch(BASE_URL + '/api/manga/' + mangaId + '/chapters/list');
+            if (resp.ok) {
+                var chapList = resp.json();
+                if (chapList && Array.isArray(chapList)) {
+                    for (var i = 0; i < chapList.length; i++) {
+                        var ch = chapList[i];
+                        var chapNum = ch.chapter_number;
+                        var chapTitle = ch.chapter_title || '';
+                        var chapId = ch.id;
+                        var groupName = ch.group_name || ch.scanlator_name || '';
+
+                        // Build chapter display name
+                        var chapName = 'Ch. ' + chapNum;
+                        if (chapTitle && chapTitle.indexOf('Chapter') !== 0 && chapTitle.indexOf('Episode') !== 0) {
+                            chapName = chapName + ' - ' + chapTitle;
                         }
-                        
-                        if (ch.chapter_title && ch.chapter_title !== chapName) {
-                            if (ch.chapter_title.indexOf('Chapter') > -1 || ch.chapter_title.indexOf('Ch.') > -1) {
-                                chapName = ch.chapter_title;
-                            } else {
-                                chapName += ' - ' + ch.chapter_title;
-                            }
+                        if (groupName && groupName !== 'null') {
+                            chapName = chapName + ' [' + groupName + ']';
                         }
-                        
-                        var chUrl = BASE_URL + '/chapter/' + ch.id + (ch.source ? '?source=' + ch.source : '');
-                        chapters.push({
+
+                        data.push({
                             name: chapName,
-                            url: chUrl,
+                            url: BASE_URL + '/chapter/' + chapId,
                             host: BASE_URL
                         });
                     }
                 }
-            } catch(e) {}
+            }
+        } catch (e) {
+            // API failed
         }
     }
 
-    return Response.success(chapters.reverse());
+    return Response.success(data);
 }

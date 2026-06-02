@@ -1,13 +1,28 @@
-function execute(url) {
-    var BASE_URL = 'https://mangadot.net';
-    var requestUrl = url.replace(/\/$/, "");
-    
-    // Extract Manga ID: /manga/351 -> 351
-    var mangaIdMatch = requestUrl.match(/\/manga\/(\d+)/);
-    var mangaId = mangaIdMatch ? mangaIdMatch[1] : '';
+load('config.js');
 
+/**
+ * detail.js — Fetch manga detail.
+ * Uses .data turbo-stream for metadata (title, cover, author, description, status, genres).
+ * Uses HTML scraping for chapter list (not available in .data).
+ *
+ * @param {string} url - Manga page URL like https://mangadot.net/manga/351
+ */
+function execute(url) {
+    var requestUrl = url;
+    if (url.indexOf('http') !== 0) {
+        requestUrl = BASE_URL + url;
+    }
+
+    var name = '';
+    var cover = '';
+    var author = '';
+    var description = '';
+    var ongoing = true;
+    var genres = [];
+    var episodes = [];
+
+    // Try .data turbo-stream for metadata
     var dataUrl = requestUrl + '.data';
-    var name = '', cover = '', author = '', description = '', ongoing = true, genres = [];
     var turboOk = false;
 
     try {
@@ -16,26 +31,41 @@ function execute(url) {
             var manga = findInTurbo(turbo, 'manga');
             if (manga && typeof manga === 'object') {
                 turboOk = true;
-                if (manga.title) name = manga.title;
-                if (manga.description) description = manga.description;
-                if (manga.photo) cover = BASE_URL + manga.photo;
-                if (manga.status && manga.status.toLowerCase().indexOf('completed') !== -1) {
-                    ongoing = false;
-                }
-                
-                if (manga.authors) {
-                    try {
-                        var parsedAuthors = JSON.parse(manga.authors);
-                        if (Array.isArray(parsedAuthors)) author = parsedAuthors.join(', ');
-                    } catch(e) {}
+
+                name = manga.title || '';
+                description = manga.description || '';
+
+                // Cover
+                var photo = manga.photo || '';
+                if (photo) {
+                    cover = photo.indexOf('http') === 0 ? photo : BASE_URL + photo;
                 }
 
-                if (manga.genres && Array.isArray(manga.genres)) {
-                    for (var g = 0; g < manga.genres.length; g++) {
-                        if (typeof manga.genres[g] === 'string') {
+                // Authors
+                author = parseAuthors(manga.authors);
+                if (!author) {
+                    author = parseAuthors(manga.artists);
+                }
+
+                // Status
+                var status = manga.status || '';
+                if (typeof status === 'string') {
+                    var sl = status.toLowerCase();
+                    if (sl.indexOf('completed') > -1 || sl.indexOf('hoan') > -1 || sl.indexOf('cancelled') > -1) {
+                        ongoing = false;
+                    }
+                }
+
+                // Genres
+                var genreArr = manga.genres;
+                if (genreArr && Array.isArray(genreArr)) {
+                    for (var g = 0; g < genreArr.length; g++) {
+                        var gName = genreArr[g];
+                        if (typeof gName === 'string' && gName.length > 0 && gName.length < 30) {
                             genres.push({
-                                title: manga.genres[g],
-                                link: BASE_URL + '/search?genres=' + encodeURIComponent(manga.genres[g])
+                                title: gName,
+                                input: BASE_URL + '/search?genres=' + encodeURIComponent(gName),
+                                script: 'gen.js'
                             });
                         }
                     }
@@ -43,73 +73,63 @@ function execute(url) {
             }
         }
     } catch (e) {
-        // Fallback
+        // Fall through to HTML
     }
 
-    if (!turboOk) {
-        var doc = Http.get(requestUrl).html();
-        var titleEl = doc.select('h1').first();
-        if (titleEl) name = titleEl.text().trim();
-
-        var descEl = doc.select('div.prose').first();
-        if (descEl) description = descEl.text().trim();
-
-        var imgEl = doc.select('img[src*=/uploads/]').first();
-        if (imgEl) cover = BASE_URL + imgEl.attr('src');
+    // Extract manga ID from URL: /manga/{id}
+    var mangaId = '';
+    var idMatch = requestUrl.match(/\/manga\/(\d+)/);
+    if (idMatch) {
+        mangaId = idMatch[1];
     }
 
-    // Chapters via API
-    var episodes = [];
-    var sourceMap = {};
-
+    // Fetch chapters from API
     if (mangaId) {
-        var apiChapUrl = BASE_URL + '/api/manga/' + mangaId + '/chapters/list';
-        var chapJson = Http.get(apiChapUrl).string();
-        if (chapJson) {
-            try {
-                var list = JSON.parse(chapJson);
-                if (Array.isArray(list)) {
-                    for (var i = 0; i < list.length; i++) {
-                        var ch = list[i];
-                        var groupName = ch.group_name || 'Mặc định';
-                        
-                        var chapName = '';
-                        if (ch.chapter_number != null) {
-                            chapName = 'Chapter ' + ch.chapter_number;
-                        } else {
-                            chapName = 'Chapter ' + (i + 1);
+        try {
+            var chapResp = fetch(BASE_URL + '/api/manga/' + mangaId + '/chapters/list');
+            if (chapResp.ok) {
+                var chapList = chapResp.json();
+                if (chapList && Array.isArray(chapList)) {
+                    var sourceMap = {};
+
+                    for (var i = 0; i < chapList.length; i++) {
+                        var ch = chapList[i];
+                        var chapNum = ch.chapter_number;
+                        var chapTitle = ch.chapter_title || '';
+                        var chapId = ch.id;
+                        var groupName = ch.group_name || ch.scanlator_name || 'Default';
+                        if (!groupName || groupName === 'null') groupName = 'Default';
+
+                        // Build chapter display name
+                        var chapName = 'Ch. ' + chapNum;
+                        if (chapTitle && chapTitle.indexOf('Chapter') !== 0 && chapTitle.indexOf('Episode') !== 0) {
+                            chapName = chapName + ' - ' + chapTitle;
                         }
-                        
-                        if (ch.chapter_title && ch.chapter_title !== chapName) {
-                            if (ch.chapter_title.indexOf('Chapter') > -1 || ch.chapter_title.indexOf('Ch.') > -1) {
-                                chapName = ch.chapter_title;
-                            } else {
-                                chapName += ' - ' + ch.chapter_title;
-                            }
-                        }
-                        
+
                         if (!sourceMap[groupName]) {
                             sourceMap[groupName] = [];
                         }
-                        
-                        var chUrl = BASE_URL + '/chapter/' + ch.id + (ch.source ? '?source=' + ch.source : '');
+
                         sourceMap[groupName].push({
                             name: chapName,
-                            url: chUrl,
+                            url: BASE_URL + '/chapter/' + chapId,
                             host: BASE_URL
                         });
                     }
-                }
-            } catch(e) {}
-        }
-    }
 
-    for (var group in sourceMap) {
-        if (sourceMap.hasOwnProperty(group)) {
-            episodes.push({
-                title: group,
-                urls: sourceMap[group].reverse()
-            });
+                    // Convert to episodes (tabs by source group)
+                    for (var group in sourceMap) {
+                        if (sourceMap.hasOwnProperty(group)) {
+                            episodes.push({
+                                title: group,
+                                urls: sourceMap[group]
+                            });
+                        }
+                    }
+                }
+            }
+        } catch (e) {
+            // Chapter API failed
         }
     }
 
