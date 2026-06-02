@@ -21,7 +21,7 @@ function execute(url, page) {
         return searchApi(BASE_URL + '/search?sortBy=date_added&sortOrder=desc', page);
     }
     if (requestUrl.indexOf('/view-all/completed') > -1) {
-        return searchApi(BASE_URL + '/search?status=completed', page);
+        return searchApi(BASE_URL + '/search?status=Completed', page);
     }
 
     // Detect if this is a search/genre URL → use REST API
