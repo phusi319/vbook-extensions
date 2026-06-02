@@ -1,4 +1,12 @@
 load('config.js');
+
+/**
+ * toc.js — Return flat chapter list from HTML.
+ * Chapters are parsed from the server-rendered HTML since the .data endpoint
+ * doesn't contain chapter listings.
+ *
+ * @param {string} url - Manga page URL like https://mangadot.net/manga/351
+ */
 function execute(url) {
     var requestUrl = url;
     if (url.indexOf('http') !== 0) {
@@ -50,7 +58,7 @@ function execute(url) {
             chapName = 'Chapter ' + (i + 1);
         }
 
-        // Group
+        // Group label
         var groupName = '';
         var groupEl = chapEl.select('a[href^=/group/]').first();
         if (groupEl) {
@@ -67,6 +75,6 @@ function execute(url) {
         });
     }
 
-    // Reverse: chương cũ nhất lên đầu
+    // Reverse: oldest chapter first
     return Response.success(data.reverse());
 }

@@ -1,75 +1,135 @@
 load('config.js');
+
+/**
+ * detail.js — Fetch manga detail.
+ * Uses .data turbo-stream for metadata (title, cover, author, description, status, genres).
+ * Uses HTML scraping for chapter list (not available in .data).
+ *
+ * @param {string} url - Manga page URL like https://mangadot.net/manga/351
+ */
 function execute(url) {
     var requestUrl = url;
     if (url.indexOf('http') !== 0) {
         requestUrl = BASE_URL + url;
     }
-    var doc = Http.get(requestUrl).html();
 
-    // Title
     var name = '';
-    var h1 = doc.select('h1').first();
-    if (h1) name = h1.text().trim();
-
-    // Cover image (inside shrink-0 div)
     var cover = '';
-    var coverEl = doc.select('div.shrink-0 img').first();
-    if (coverEl) {
-        cover = coverEl.attr('src');
-        if (cover && cover.indexOf('http') !== 0) {
-            cover = BASE_URL + cover;
+    var author = '';
+    var description = '';
+    var ongoing = true;
+    var genres = [];
+    var episodes = [];
+
+    // Try .data turbo-stream for metadata
+    var dataUrl = requestUrl + '.data';
+    var turboOk = false;
+
+    try {
+        var turbo = fetchTurbo(dataUrl);
+        if (turbo) {
+            var manga = findInTurbo(turbo, 'manga');
+            if (manga && typeof manga === 'object') {
+                turboOk = true;
+
+                name = manga.title || '';
+                description = manga.description || '';
+
+                // Cover
+                var photo = manga.photo || '';
+                if (photo) {
+                    cover = photo.indexOf('http') === 0 ? photo : BASE_URL + photo;
+                }
+
+                // Authors
+                author = parseAuthors(manga.authors);
+                if (!author) {
+                    author = parseAuthors(manga.artists);
+                }
+
+                // Status
+                var status = manga.status || '';
+                if (typeof status === 'string') {
+                    var sl = status.toLowerCase();
+                    if (sl.indexOf('completed') > -1 || sl.indexOf('hoan') > -1 || sl.indexOf('cancelled') > -1) {
+                        ongoing = false;
+                    }
+                }
+
+                // Genres
+                var genreArr = manga.genres;
+                if (genreArr && Array.isArray(genreArr)) {
+                    for (var g = 0; g < genreArr.length; g++) {
+                        var gName = genreArr[g];
+                        if (typeof gName === 'string' && gName.length > 0 && gName.length < 30) {
+                            genres.push({
+                                title: gName,
+                                input: BASE_URL + '/search?genres=' + encodeURIComponent(gName),
+                                script: 'gen.js'
+                            });
+                        }
+                    }
+                }
+            }
         }
+    } catch (e) {
+        // Fall through to HTML
     }
 
-    // Author
-    var author = '';
-    var authorEl = doc.select('a[href^=/search?author=]').first();
-    if (authorEl) author = authorEl.text().trim();
+    // Get HTML page for chapters (and fallback metadata)
+    var doc = Http.get(requestUrl).html();
 
-    // Description
-    var description = '';
-    var descEl = doc.select('div.leading-\\[1\\.7\\]').first();
-    if (descEl) {
-        description = descEl.text().trim();
-    } else {
-        // Fallback: tìm div text-sm chứa text dài
-        var allDivs = doc.select('div.text-sm');
-        for (var d = 0; d < allDivs.size(); d++) {
-            var txt = allDivs.get(d).text().trim();
-            if (txt.length > 50) {
-                description = txt;
-                break;
+    // Fallback metadata from HTML if turbo failed
+    if (!turboOk) {
+        var h1 = doc.select('h1').first();
+        if (h1) name = h1.text().trim();
+
+        var coverEl = doc.select('div.shrink-0 img').first();
+        if (coverEl) {
+            cover = coverEl.attr('src');
+            if (cover && cover.indexOf('http') !== 0) cover = BASE_URL + cover;
+        }
+
+        var authorEl = doc.select('a[href^=/search?author=]').first();
+        if (authorEl) author = authorEl.text().trim();
+
+        var descEl = doc.select('div.leading-\\[1\\.7\\]').first();
+        if (descEl) {
+            description = descEl.text().trim();
+        } else {
+            var allDivs = doc.select('div.text-sm');
+            for (var d = 0; d < allDivs.size(); d++) {
+                var txt = allDivs.get(d).text().trim();
+                if (txt.length > 50) {
+                    description = txt;
+                    break;
+                }
+            }
+        }
+
+        var statusEl = doc.select('span.rounded-full.font-bold').first();
+        if (statusEl) {
+            var statusText = statusEl.text().toLowerCase();
+            if (statusText.indexOf('completed') > -1 || statusText.indexOf('hoan') > -1) {
+                ongoing = false;
+            }
+        }
+
+        var genreEls = doc.select('a.rounded-full[href^=/search]');
+        for (var ge = 0; ge < genreEls.size(); ge++) {
+            var gEl = genreEls.get(ge);
+            var genreTitle = gEl.text().trim();
+            if (genreTitle && genreTitle.length > 0 && genreTitle.length < 30) {
+                genres.push({
+                    title: genreTitle,
+                    input: BASE_URL + gEl.attr('href'),
+                    script: 'gen.js'
+                });
             }
         }
     }
 
-    // Status
-    var ongoing = true;
-    var statusEl = doc.select('span.rounded-full.font-bold').first();
-    if (statusEl) {
-        var statusText = statusEl.text().toLowerCase();
-        if (statusText.indexOf('completed') > -1 || statusText.indexOf('hoan') > -1) {
-            ongoing = false;
-        }
-    }
-
-    // Genres
-    var genres = [];
-    var genreEls = doc.select('a.rounded-full[href^=/search]');
-    for (var g = 0; g < genreEls.size(); g++) {
-        var ge = genreEls.get(g);
-        var genreTitle = ge.text().trim();
-        if (genreTitle && genreTitle.length > 0 && genreTitle.length < 30) {
-            genres.push({
-                title: genreTitle,
-                input: BASE_URL + ge.attr('href'),
-                script: "gen.js"
-            });
-        }
-    }
-
-    // Chapters - parse from SSR HTML
-    // Each chapter: a.relative.block[href^=/chapter/]
+    // Parse chapters from HTML
     var chapLinks = doc.select('a.relative.block[href^=/chapter/]');
     var sourceMap = {};
 
@@ -95,7 +155,7 @@ function execute(url) {
             }
         }
 
-        // Chapter title: span.truncate.font-medium
+        // Chapter title: span.font-medium
         var chapTitle = '';
         var titleEl = chapEl.select('span.font-medium').first();
         if (titleEl) {
@@ -129,7 +189,6 @@ function execute(url) {
     }
 
     // Convert to episodes (tabs by source group)
-    var episodes = [];
     for (var group in sourceMap) {
         if (sourceMap.hasOwnProperty(group)) {
             episodes.push({
@@ -139,7 +198,7 @@ function execute(url) {
         }
     }
 
-    // Fallback nếu không parse được group
+    // Fallback if no groups were parsed
     if (episodes.length === 0 && chapLinks.size() > 0) {
         var fallbackList = [];
         for (var j = 0; j < chapLinks.size(); j++) {
