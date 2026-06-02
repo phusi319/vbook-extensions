@@ -92,8 +92,8 @@ function findInTurbo(obj, key) {
     var visitedObjs = [];
     queue.push(obj);
     
-    // Use a unique marker to avoid O(N^2) array scans in ES5
-    var marker = '__v_' + Math.random().toString(36).substr(2, 9);
+    // Use a unique marker to avoid O(N^2) array scans
+    var marker = '__visited_vbook';
     obj[marker] = true;
     visitedObjs.push(obj);
 
@@ -128,8 +128,8 @@ function findInTurbo(obj, key) {
     }
 
     // Cleanup markers
-    for (var i = 0; i < visitedObjs.length; i++) {
-        delete visitedObjs[i][marker];
+    for (var j = 0; j < visitedObjs.length; j++) {
+        delete visitedObjs[j][marker];
     }
 
     return result;
