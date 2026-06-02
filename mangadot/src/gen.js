@@ -1,12 +1,14 @@
 load('config.js');
 
 /**
- * gen.js — Load manga listing from .data endpoints.
- * Handles: view-all/latest-updates, view-all/popular, view-all/completed, search?genres=...
- * Falls back to HTML scraping if turbo parsing fails.
+ * gen.js — Load manga listing.
+ * 
+ * Handles:
+ *   - /view-all/latest-updates, /view-all/popular, etc. → turbo .data
+ *   - /search?genres=Action, etc. → /api/search REST API
+ *   - /api/search?... → direct REST API
  *
- * @param {string} url - The page URL (absolute or relative)
- * @param {string} page - Page number or cursor for pagination
+ * Uses fetch() throughout (bypass CF).
  */
 function execute(url, page) {
     var requestUrl = url;
@@ -14,110 +16,160 @@ function execute(url, page) {
         requestUrl = BASE_URL + url;
     }
 
-    // Try turbo-stream .data approach first
-    var dataUrl = requestUrl;
+    // Detect if this is a search/genre URL → use REST API
+    if (requestUrl.indexOf('/search') > -1) {
+        return searchApi(requestUrl, page);
+    }
 
-    // Build the .data URL: insert .data before query string
+    // For view-all pages → try turbo .data
+    return viewAllTurbo(requestUrl, page);
+}
+
+/**
+ * Handle /search?genres=... using REST API
+ */
+function searchApi(requestUrl, page) {
+    // Extract query params from the URL
     var qIdx = requestUrl.indexOf('?');
-    if (qIdx !== -1) {
-        dataUrl = requestUrl.substring(0, qIdx) + '.data' + requestUrl.substring(qIdx);
-    } else {
-        dataUrl = requestUrl + '.data';
+    var queryStr = qIdx > -1 ? requestUrl.substring(qIdx + 1) : '';
+    
+    // Build API URL
+    var apiUrl = BASE_URL + '/api/search';
+    if (queryStr) {
+        apiUrl = apiUrl + '?' + queryStr;
     }
 
     // Add pagination
     if (page && page !== '1' && page !== '') {
-        if (dataUrl.indexOf('?') !== -1) {
-            dataUrl = dataUrl + '&page=' + page;
+        if (apiUrl.indexOf('?') !== -1) {
+            apiUrl = apiUrl + '&page=' + page;
         } else {
-            dataUrl = dataUrl + '?page=' + page;
+            apiUrl = apiUrl + '?page=' + page;
         }
     }
 
     try {
-        var turbo = fetchTurbo(dataUrl);
-        if (turbo) {
-            var data = extractMangaList(turbo);
-            if (data.length > 0) {
-                // Determine next page
-                var nextPage = '';
-                var pagination = findInTurbo(turbo, 'pagination');
-                if (pagination) {
-                    var currentPage = pagination.current_page || 1;
-                    var totalPages = pagination.total_pages || 1;
-                    if (currentPage < totalPages) {
-                        nextPage = String(currentPage + 1);
+        var resp = fetch(apiUrl);
+        if (resp.ok) {
+            var json = resp.json();
+            var list = json.manga_list || json.results;
+            
+            if (list && list.length) {
+                var data = [];
+                for (var i = 0; i < list.length; i++) {
+                    var m = list[i];
+                    if (!m || !m.title || !m.id) continue;
+
+                    var cover = String(m.photo || '');
+                    if (cover && cover.indexOf('http') !== 0) {
+                        cover = BASE_URL + cover;
                     }
-                }
 
-                // If no pagination object, check for next_cursor
-                if (!nextPage) {
-                    var nextCursor = findInTurbo(turbo, 'next_cursor');
-                    if (nextCursor) {
-                        nextPage = String(nextCursor);
+                    var desc = String(m.description || '');
+                    if (m.chapter_count) {
+                        desc = 'Ch. ' + m.chapter_count + (desc ? ' — ' + desc : '');
                     }
+
+                    data.push({
+                        name: String(m.title),
+                        link: BASE_URL + '/manga/' + m.id,
+                        cover: cover,
+                        description: desc,
+                        host: BASE_URL
+                    });
                 }
 
-                // Default: increment page if we got a full page of results
-                if (!nextPage && data.length >= 20) {
-                    var p = parseInt(page || '1', 10);
-                    nextPage = String(p + 1);
+                if (data.length > 0) {
+                    // Pagination
+                    var nextPage = '';
+                    if (json.pagination) {
+                        var cp = json.pagination.current_page || 1;
+                        var tp = json.pagination.total_pages || 1;
+                        if (cp < tp) nextPage = String(cp + 1);
+                    }
+                    if (!nextPage && data.length >= 20) {
+                        var p = parseInt(page || '1', 10);
+                        nextPage = String(p + 1);
+                    }
+                    return Response.success(data, nextPage);
                 }
-
-                return Response.success(data, nextPage);
             }
         }
-    } catch (e) {
-        // Fall through to HTML scraping
-    }
+    } catch (e) {}
 
-    // Fallback: HTML scraping
-    return fallbackHtml(requestUrl, page);
+    return null;
 }
 
-function fallbackHtml(requestUrl, page) {
-    if (!page) page = '1';
+/**
+ * Handle /view-all/... pages using turbo .data
+ */
+function viewAllTurbo(requestUrl, page) {
+    var dataUrl = requestUrl + '.data';
 
-    var htmlUrl = requestUrl;
-    if (htmlUrl.indexOf('?') !== -1) {
-        htmlUrl = htmlUrl + '&page=' + page;
-    } else {
-        htmlUrl = htmlUrl + '?page=' + page;
+    if (page && page !== '1' && page !== '') {
+        dataUrl = dataUrl + '?page=' + page;
     }
 
-    var doc = Http.get(htmlUrl).html();
-    var el = doc.select('a.group[href^=/manga/]');
-    var data = [];
-
-    for (var i = 0; i < el.size(); i++) {
-        var e = el.get(i);
-        var link = e.attr('href');
-        var title = e.select('.line-clamp-2').text();
-        var coverEl = e.select('img').first();
-        var cover = '';
-        if (coverEl) {
-            cover = coverEl.attr('src');
-            if (!cover) cover = coverEl.attr('data-src');
-            if (cover && cover.indexOf('http') !== 0) {
-                cover = BASE_URL + cover;
+    try {
+        var resp = fetch(dataUrl);
+        if (resp.ok) {
+            var text = resp.text();
+            if (text) {
+                var turbo = parseTurbo(text);
+                if (turbo) {
+                    var data = extractMangaList(turbo);
+                    if (data.length > 0) {
+                        var nextPage = '';
+                        var pagination = findInTurbo(turbo, 'pagination');
+                        if (pagination) {
+                            var cp = pagination.current_page || 1;
+                            var tp = pagination.total_pages || 1;
+                            if (cp < tp) nextPage = String(cp + 1);
+                        }
+                        if (!nextPage) {
+                            var nc = findInTurbo(turbo, 'next_cursor');
+                            if (nc) nextPage = String(nc);
+                        }
+                        if (!nextPage && data.length >= 20) {
+                            var p = parseInt(page || '1', 10);
+                            nextPage = String(p + 1);
+                        }
+                        return Response.success(data, nextPage);
+                    }
+                }
             }
         }
+    } catch (e) {}
 
-        if (title && link) {
-            data.push({
-                name: title,
-                link: BASE_URL + link,
-                cover: cover,
-                description: '',
-                host: BASE_URL
-            });
+    // Fallback: try REST API for view-all as well
+    try {
+        var apiPath = requestUrl.replace(BASE_URL, '');
+        var resp2 = fetch(BASE_URL + '/api' + apiPath + (page ? '?page=' + page : ''));
+        if (resp2.ok) {
+            var json = resp2.json();
+            var list = json.manga_list || json.results || json.data;
+            if (list && list.length) {
+                var data = [];
+                for (var i = 0; i < list.length; i++) {
+                    var m = list[i];
+                    if (!m || !m.title || !m.id) continue;
+                    var cover = String(m.photo || '');
+                    if (cover && cover.indexOf('http') !== 0) cover = BASE_URL + cover;
+                    data.push({
+                        name: String(m.title),
+                        link: BASE_URL + '/manga/' + m.id,
+                        cover: cover,
+                        description: m.chapter_count ? 'Ch. ' + m.chapter_count : '',
+                        host: BASE_URL
+                    });
+                }
+                if (data.length > 0) {
+                    var np = data.length >= 20 ? String(parseInt(page || '1', 10) + 1) : '';
+                    return Response.success(data, np);
+                }
+            }
         }
-    }
+    } catch (e) {}
 
-    var next = '';
-    if (data.length > 0) {
-        next = String(parseInt(page, 10) + 1);
-    }
-
-    return Response.success(data, next);
+    return null;
 }
