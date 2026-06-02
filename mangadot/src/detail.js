@@ -86,11 +86,22 @@ function execute(url) {
     // Fetch chapters from API
     if (mangaId) {
         try {
-            var chapResp = fetch(BASE_URL + '/api/manga/' + mangaId + '/chapters/list');
-            if (chapResp.ok) {
-                var chapList = chapResp.json();
-                if (chapList && Array.isArray(chapList)) {
-                    var sourceMap = {};
+            var apiUrl = BASE_URL + '/api/manga/' + mangaId + '/chapters/list';
+            var chapList = null;
+            try {
+                var str = Http.get(apiUrl).string();
+                if (str && (str.indexOf('[{') === 0 || str.indexOf('[]') === 0)) {
+                    chapList = JSON.parse(str);
+                }
+            } catch (e) {}
+            
+            if (!chapList) {
+                var chapResp = fetch(apiUrl);
+                if (chapResp.ok) chapList = chapResp.json();
+            }
+
+            if (chapList && Array.isArray(chapList)) {
+                var sourceMap = {};
 
                     for (var i = 0; i < chapList.length; i++) {
                         var ch = chapList[i];

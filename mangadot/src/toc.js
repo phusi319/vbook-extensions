@@ -23,10 +23,21 @@ function execute(url) {
 
     if (mangaId) {
         try {
-            var resp = fetch(BASE_URL + '/api/manga/' + mangaId + '/chapters/list');
-            if (resp.ok) {
-                var chapList = resp.json();
-                if (chapList && Array.isArray(chapList)) {
+            var apiUrl = BASE_URL + '/api/manga/' + mangaId + '/chapters/list';
+            var chapList = null;
+            try {
+                var str = Http.get(apiUrl).string();
+                if (str && (str.indexOf('[{') === 0 || str.indexOf('[]') === 0)) {
+                    chapList = JSON.parse(str);
+                }
+            } catch (e) {}
+            
+            if (!chapList) {
+                var resp = fetch(apiUrl);
+                if (resp.ok) chapList = resp.json();
+            }
+
+            if (chapList && Array.isArray(chapList)) {
                     for (var i = 0; i < chapList.length; i++) {
                         var ch = chapList[i];
                         var chapNum = ch.chapter_number;

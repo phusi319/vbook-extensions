@@ -39,11 +39,20 @@ function execute(url) {
                 apiUrl = BASE_URL + '/api/chapters/' + chapterId + '/images';
             }
             
-            var resp = fetch(apiUrl);
+            var json = null;
+            try {
+                var str = Http.get(apiUrl).string();
+                if (str && str.indexOf('{') === 0) {
+                    json = JSON.parse(str);
+                }
+            } catch (e) {}
+
+            if (!json) {
+                var resp = fetch(apiUrl);
+                if (resp.ok) json = resp.json();
+            }
             
-            if (resp.ok) {
-                var json = resp.json();
-                if (json && json.images && Array.isArray(json.images)) {
+            if (json && json.images && Array.isArray(json.images)) {
                     for (var i = 0; i < json.images.length; i++) {
                         var imgObj = json.images[i];
                         var imgSrc = imgObj.url;

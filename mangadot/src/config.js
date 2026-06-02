@@ -73,10 +73,8 @@ function parseTurbo(text) {
 function findInTurbo(obj, key) {
     if (!obj || typeof obj !== 'object') return null;
 
-    // Direct key access
     if (obj[key] !== undefined) return obj[key];
 
-    // Dotted path
     if (key.indexOf('.') > -1) {
         var parts = key.split('.');
         var cur = obj;
@@ -87,67 +85,64 @@ function findInTurbo(obj, key) {
         return cur !== undefined ? cur : null;
     }
 
-    // BFS search
-    var queue = [];
-    var visitedObjs = [];
-    queue.push(obj);
-    
-    // Use a unique marker to avoid O(N^2) array scans
-    var marker = '__visited_vbook';
-    obj[marker] = true;
-    visitedObjs.push(obj);
+    function dfs(current, targetKey, depth, visited) {
+        if (depth > 15) return null;
+        if (!current || typeof current !== 'object') return null;
+        if (current[targetKey] !== undefined) return current[targetKey];
 
-    var result = null;
+        for (var v = 0; v < visited.length; v++) {
+            if (visited[v] === current) return null;
+        }
 
-    while (queue.length > 0) {
-        var current = queue.shift();
-        if (!current || typeof current !== 'object') continue;
+        visited.push(current);
 
         var ks = Object.keys(current);
-        var found = false;
         for (var i = 0; i < ks.length; i++) {
-            var k = ks[i];
-            if (k === marker) continue;
-            
-            if (k === key) {
-                result = current[k];
-                found = true;
-                break;
-            }
-            
-            var child = current[k];
+            var child = current[ks[i]];
             if (child && typeof child === 'object') {
-                if (!child[marker]) {
-                    child[marker] = true;
-                    visitedObjs.push(child);
-                    queue.push(child);
-                }
+                var res = dfs(child, targetKey, depth + 1, visited);
+                if (res !== null) return res;
             }
         }
-        if (found) break;
+
+        visited.pop();
+        return null;
     }
 
-    // Cleanup markers
-    for (var j = 0; j < visitedObjs.length; j++) {
-        delete visitedObjs[j][marker];
-    }
-
-    return result;
+    return dfs(obj, key, 0, []);
 }
 
 /**
  * Fetch a .data endpoint and return parsed turbo object.
  */
 function fetchTurbo(url) {
-    var resp = fetch(url, {
-        headers: {
-            'Accept': 'text/x-turbo'
+    var htmlUrl = url.replace('.data', '');
+    try {
+        // First try to fetch the HTML page directly using vBook's Http client (which has CF cookies)
+        var html = Http.get(htmlUrl).string();
+        if (html) {
+            var match = html.match(/window\.__reactRouterContext\.streamController\.enqueue\("(.*?)"\);/);
+            if (match) {
+                var jsonStr = JSON.parse('"' + match[1] + '"');
+                return parseTurbo(jsonStr);
+            }
         }
-    });
-    if (!resp.ok) return null;
-    var text = resp.text();
-    if (!text) return null;
-    return parseTurbo(text);
+    } catch (e) {}
+
+    try {
+        // Fallback: try direct API fetch (if CF is disabled)
+        var resp = fetch(url, {
+            headers: {
+                'Accept': 'text/x-turbo'
+            }
+        });
+        if (resp.ok) {
+            var text = resp.text();
+            if (text) return parseTurbo(text);
+        }
+    } catch (e) {}
+    
+    return null;
 }
 
 /**
