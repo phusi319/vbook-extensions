@@ -1,12 +1,17 @@
 load('config.js');
 
+/**
+ * detail.js — Fetch manga detail.
+ * Uses fetch() (NOT Http.get) to bypass Cloudflare.
+ * Modeled after foxtruyen detail.js which works perfectly.
+ */
 function execute(url) {
     var requestUrl = url;
     if (url.indexOf('http') !== 0) {
         requestUrl = BASE_URL + url;
     }
 
-    var doc = Http.get(requestUrl).html();
+    var doc = fetch(requestUrl).html();
     if (doc) {
         var name = '';
         var cover = '';
@@ -17,9 +22,9 @@ function execute(url) {
 
         // Title
         var h1 = doc.select('h1').first();
-        if (h1) name = h1.text().trim();
+        if (h1) name = h1.text();
 
-        // Cover image
+        // Cover image - look for manga cover
         var imgs = doc.select('img');
         for (var i = 0; i < imgs.size(); i++) {
             var src = imgs.get(i).attr('src');
@@ -28,12 +33,13 @@ function execute(url) {
                 break;
             }
         }
-        if (cover && cover.indexOf('http') !== 0) cover = BASE_URL + cover;
+        if (cover && cover.indexOf('http') !== 0) {
+            cover = BASE_URL + cover;
+        }
 
         // Description
         var descEl = doc.select('.line-clamp-6').first();
-        if (!descEl) descEl = doc.select('p').first();
-        if (descEl) description = descEl.text().trim();
+        if (descEl) description = descEl.text();
 
         // Detail info
         if (name) detail = name;
