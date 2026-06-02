@@ -19,7 +19,6 @@ function execute(url) {
     var description = '';
     var ongoing = true;
     var genres = [];
-    var episodes = [];
 
     // Try .data turbo-stream for metadata
     var dataUrl = requestUrl + '.data';
@@ -100,75 +99,6 @@ function execute(url) {
     if (!name) name = "Unknown"; // prevent Add Bookshelf crash at all costs
     if (!cover) cover = "";
 
-    // Extract manga ID from URL: /manga/{id}
-    var mangaId = '';
-    var idMatch = requestUrl.match(/\/manga\/(\d+)/);
-    if (idMatch) {
-        mangaId = idMatch[1];
-    }
-
-    // Fetch chapters from API
-    if (mangaId) {
-        try {
-            var apiUrl = BASE_URL + '/api/manga/' + mangaId + '/chapters/list';
-            var chapList = null;
-            try {
-                var str = Http.get(apiUrl).string();
-                if (str && (str.indexOf('[{') === 0 || str.indexOf('[]') === 0)) {
-                    chapList = JSON.parse(str);
-                }
-            } catch (e) {}
-            
-            if (!chapList) {
-                var chapResp = fetch(apiUrl);
-                if (chapResp.ok) chapList = chapResp.json();
-            }
-
-            if (chapList && Array.isArray(chapList)) {
-                var sourceMap = {};
-
-                    for (var i = 0; i < chapList.length; i++) {
-                        var ch = chapList[i];
-                        var chapNum = ch.chapter_number;
-                        var chapTitle = ch.chapter_title || '';
-                        var chapId = ch.id;
-                        var groupName = ch.group_name || ch.scanlator_name || 'Default';
-                        if (!groupName || groupName === 'null') groupName = 'Default';
-
-                        // Build chapter display name
-                        var chapName = 'Ch. ' + chapNum;
-                        if (chapTitle && chapTitle.indexOf('Chapter') !== 0 && chapTitle.indexOf('Episode') !== 0) {
-                            chapName = chapName + ' - ' + chapTitle;
-                        }
-
-                        if (!sourceMap[groupName]) {
-                            sourceMap[groupName] = [];
-                        }
-
-                        var sourceParam = ch.source ? '?source=' + ch.source : '';
-
-                        sourceMap[groupName].push({
-                            name: chapName,
-                            url: BASE_URL + '/chapter/' + chapId + sourceParam,
-                            host: BASE_URL
-                        });
-                    }
-
-                    // Convert to episodes (tabs by source group)
-                    for (var group in sourceMap) {
-                        if (sourceMap.hasOwnProperty(group)) {
-                            episodes.push({
-                                title: group,
-                                urls: sourceMap[group]
-                            });
-                        }
-                }
-            }
-        } catch (e) {
-            // Chapter API failed
-        }
-    }
-
     return Response.success({
         name: name,
         cover: cover,
@@ -176,7 +106,6 @@ function execute(url) {
         description: description,
         host: BASE_URL,
         ongoing: ongoing,
-        genres: genres,
-        episodes: episodes
+        genres: genres
     });
 }
