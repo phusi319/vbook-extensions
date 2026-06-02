@@ -43,9 +43,11 @@ function execute(url) {
                             chapName = chapName + ' [' + groupName + ']';
                         }
 
+                        var sourceParam = ch.source ? '?source=' + ch.source : '';
+
                         data.push({
                             name: chapName,
-                            url: BASE_URL + '/chapter/' + chapId,
+                            url: BASE_URL + '/chapter/' + chapId + sourceParam,
                             host: BASE_URL
                         });
                     }

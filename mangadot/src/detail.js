@@ -110,9 +110,11 @@ function execute(url) {
                             sourceMap[groupName] = [];
                         }
 
+                        var sourceParam = ch.source ? '?source=' + ch.source : '';
+
                         sourceMap[groupName].push({
                             name: chapName,
-                            url: BASE_URL + '/chapter/' + chapId,
+                            url: BASE_URL + '/chapter/' + chapId + sourceParam,
                             host: BASE_URL
                         });
                     }
