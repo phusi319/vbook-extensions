@@ -72,9 +72,33 @@ function execute(url) {
                 }
             }
         }
-    } catch (e) {
-        // Fall through to HTML
+    } catch (e) {}
+
+    // Ultimate fallback for metadata if turbo fails (guarantees Add Bookshelf works)
+    if (!name) {
+        try {
+            var doc = Http.get(requestUrl).html();
+            var h1 = doc.select('h1').first();
+            if (h1) name = h1.text().trim();
+            
+            var imgs = doc.select('img');
+            for (var i = 0; i < imgs.size(); i++) {
+                var src = imgs.get(i).attr('src');
+                if (src && src.indexOf('mangadotnet') === -1) {
+                    cover = src;
+                    break;
+                }
+            }
+            if (cover && cover.indexOf('http') !== 0) cover = BASE_URL + cover;
+            
+            var p = doc.select('.line-clamp-6').first();
+            if (!p) p = doc.select('p').first();
+            if (p) description = p.text().trim();
+        } catch (e) {}
     }
+
+    if (!name) name = "Unknown"; // prevent Add Bookshelf crash at all costs
+    if (!cover) cover = "";
 
     // Extract manga ID from URL: /manga/{id}
     var mangaId = '';
