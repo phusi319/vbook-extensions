@@ -62,7 +62,6 @@ function execute(url) {
                             }
                             data.push(imgSrc);
                         }
-                    }
                 }
             }
         } catch (e) {

@@ -138,7 +138,6 @@ function execute(url) {
                                 urls: sourceMap[group]
                             });
                         }
-                    }
                 }
             }
         } catch (e) {

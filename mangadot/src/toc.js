@@ -61,7 +61,6 @@ function execute(url) {
                             url: BASE_URL + '/chapter/' + chapId + sourceParam,
                             host: BASE_URL
                         });
-                    }
                 }
             }
         } catch (e) {
