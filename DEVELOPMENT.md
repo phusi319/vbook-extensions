@@ -359,15 +359,57 @@ So sánh từng field với extension đang hoạt động. Chú ý đặc biệ
 - `regexp` — phải match URL chi tiết truyện
 - `type`, `locale`, `language` — phải có đầy đủ
 
-### Bước 4: CDP Testing
-Dùng Chrome DevTools Protocol để test trực tiếp trong browser:
-```bash
-# Mở Chrome với remote debugging
-chrome --remote-debugging-port=9222
+### Bước 4: CDP Testing (Bypass Cloudflare)
+Sử dụng Chrome DevTools Protocol (CDP) kết nối trực tiếp vào trình duyệt Edge/Chrome của máy tính để test DOM selectors. Cách này cực kỳ hữu hiệu khi site có Cloudflare vì trình duyệt sẽ giải quyết CF thay ta.
 
-# Chạy test script
-node cdp_test.js
+**1. Khởi động Edge với Remote Debugging (Giữ nguyên Profile)**
+Để bypass Cloudflare dễ nhất, hãy mở Edge với profile mặc định của bạn (để tận dụng cookie/session đã có). Dùng PowerShell script sau để tắt Edge đang chạy và mở lại với port `9222`:
+
+```powershell
+# Tắt Edge hiện tại
+taskkill /F /IM msedge.exe /T
+Start-Sleep -Seconds 2
+
+# Mở lại Edge qua WMI với port 9222 (Giữ nguyên profile người dùng)
+$cmd = "`"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe`" --remote-debugging-port=9222 https://truyenqqko.com"
+Invoke-WmiMethod -Class Win32_Process -Name Create -ArgumentList $cmd
 ```
+
+**2. Script Puppeteer Kiểm Tra Selectors**
+Tạo file `check.js` (cần `npm install puppeteer`):
+
+```javascript
+const puppeteer = require('puppeteer');
+
+(async () => {
+    // Kết nối vào Edge đang chạy ở port 9222, KHÔNG tạo profile mới
+    const browser = await puppeteer.connect({ browserURL: 'http://localhost:9222' });
+    const pages = await browser.pages();
+    let page = pages.find(p => p.url().includes('truyenqqko.com'));
+    
+    if (page) {
+        // Đợi Cloudflare (Just a moment...)
+        await new Promise(r => setTimeout(r, 2000));
+        
+        // Test selectors giống hệt cách vBook hoạt động
+        const data = await page.evaluate(() => {
+            return {
+                name: document.querySelector('h1[itemprop=name]')?.innerText,
+                cover: document.querySelector('.book_avatar img')?.getAttribute('src'),
+                genres: document.querySelectorAll('.book_info .list01 a').length
+            };
+        });
+        console.log("Extracted Data:", JSON.stringify(data, null, 2));
+    }
+    browser.disconnect();
+})();
+```
+
+**3. Chạy test**
+```bash
+node check.js
+```
+Nếu script lấy được data, chứng tỏ CSS selector của bạn đúng. Nếu vBook vẫn lỗi, hãy kiểm tra lại logic parsing URL (`BASE_URL` nối chuỗi) hoặc config `regexp`.
 
 ---
 
