@@ -1,18 +1,47 @@
 load('config.js');
 
 function execute(url) {
-    if (url.indexOf("http") !== 0) {
-        url = BASE_URL + url;
+    if (url.indexOf('http') !== 0) {
+        if (url.indexOf('//') === 0) {
+            url = 'https:' + url;
+        } else if (url.indexOf('/') === 0) {
+            url = BASE_URL + url;
+        } else {
+            url = BASE_URL + '/' + url;
+        }
     }
+    // Normalize domain to BASE_URL
     url = url.replace(/^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:\/\n?]+)/i, BASE_URL);
 
     var doc = fetch(url).html();
-    if (!doc) return null;
+    if (!doc) {
+        return Response.success({
+            name: "Lỗi Fetch",
+            cover: "",
+            host: BASE_URL,
+            author: "",
+            description: "Không thể fetch URL: " + url,
+            detail: "Debug URL",
+            ongoing: true,
+            genres: []
+        });
+    }
 
     var name = '';
     var h1 = doc.select('h1[itemprop=name]').first();
     if (h1) name = h1.text();
-    if (!name) return null;
+    if (!name) {
+        return Response.success({
+            name: "Lỗi Parsing H1",
+            cover: "",
+            host: BASE_URL,
+            author: "",
+            description: "URL đã fetch: " + url + "<br>HTML trả về (500 ký tự đầu): " + doc.html().substring(0, 500).replace(/</g, "&lt;").replace(/>/g, "&gt;"),
+            detail: "Debug HTML",
+            ongoing: true,
+            genres: []
+        });
+    }
 
     // Cover
     var cover = '';

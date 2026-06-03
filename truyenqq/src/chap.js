@@ -1,8 +1,14 @@
 load('config.js');
 
 function execute(url) {
-    if (url.indexOf("http") !== 0) {
-        url = BASE_URL + url;
+    if (url.indexOf('http') !== 0) {
+        if (url.indexOf('//') === 0) {
+            url = 'https:' + url;
+        } else if (url.indexOf('/') === 0) {
+            url = BASE_URL + url;
+        } else {
+            url = BASE_URL + '/' + url;
+        }
     }
     url = url.replace(/^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:\/\n?]+)/i, BASE_URL);
 
