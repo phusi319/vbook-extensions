@@ -2,6 +2,7 @@ load('config.js');
 
 function execute(key, page) {
     if (!page) page = '1';
+    key = String(key);
 
     var url = BASE_URL + '/tim-kiem/trang-' + page + '?q=' + encodeURIComponent(key);
     var doc = fetch(url).html();

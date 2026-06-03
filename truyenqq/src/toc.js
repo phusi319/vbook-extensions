@@ -1,6 +1,7 @@
 load('config.js');
 
 function execute(url) {
+    url = String(url);
     if (url.indexOf('http') !== 0) {
         if (url.indexOf('//') === 0) {
             url = 'https:' + url;

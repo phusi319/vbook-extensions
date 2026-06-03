@@ -2,6 +2,7 @@ load('config.js');
 
 function execute(url, page) {
     if (!page) page = '1';
+    url = String(url);
 
     var requestUrl = url;
     if (url.indexOf('http') !== 0) {

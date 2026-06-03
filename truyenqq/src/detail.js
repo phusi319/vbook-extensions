@@ -1,6 +1,7 @@
 load('config.js');
 
 function execute(url) {
+    url = String(url);
     if (url.indexOf('http') !== 0) {
         if (url.indexOf('//') === 0) {
             url = 'https:' + url;
@@ -73,11 +74,12 @@ function execute(url) {
     var infoItems = doc.select('.book_info .list-info li');
     for (var i = 0; i < infoItems.size(); i++) {
         var item = infoItems.get(i);
-        var label = item.select('.name').text().replace(/\s+/g, ' ').trim();
+        var label = String(item.select('.name').text()).replace(/\s+/g, ' ').trim();
         var valueNode = item.select('p').last();
         if (!valueNode) continue;
-        var value = valueNode.html().replace(/\s+/g, ' ').trim();
-        if (!label || !value || label === valueNode.text().replace(/\s+/g, ' ').trim()) continue;
+        var value = String(valueNode.html()).replace(/\s+/g, ' ').trim();
+        var textVal = String(valueNode.text()).replace(/\s+/g, ' ').trim();
+        if (!label || !value || label === textVal) continue;
         lines.push('<b>' + label + ':</b> ' + value);
     }
     var detail = lines.join('<br>');
