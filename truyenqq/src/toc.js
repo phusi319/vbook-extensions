@@ -1,7 +1,9 @@
 load('config.js');
 
 function execute(url) {
-    // Normalize domain to BASE_URL
+    if (url.indexOf("http") !== 0) {
+        url = BASE_URL + url;
+    }
     url = url.replace(/^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:\/\n?]+)/i, BASE_URL);
 
     var doc = fetch(url).html();
