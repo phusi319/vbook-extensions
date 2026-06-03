@@ -1,0 +1,21 @@
+{
+  "metadata": {
+    "name": "Truyện QQ",
+    "author": "phusi319",
+    "version": 1,
+    "source": "https://truyenqqko.com",
+    "regexp": "(www.)?truyenqq.*?/truyen-tranh/[0-9a-z-]+/?$",
+    "description": "Đọc truyện tranh trên TruyenQQ",
+    "locale": "vi_VN",
+    "language": "javascript",
+    "type": "comic"
+  },
+  "script": {
+    "home": "home.js",
+    "genre": "genre.js",
+    "detail": "detail.js",
+    "search": "search.js",
+    "toc": "toc.js",
+    "chap": "chap.js"
+  }
+}
