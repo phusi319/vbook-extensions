@@ -1,12 +1,15 @@
 /**
- * image.js — IMGX Image Decoder for MoeTruyen (Pure JavaScript, no Java)
+ * image.js — IMGX Image Decoder for MoeTruyen
  *
  * Receives: "downloadUrl {grant, storageKey}" from chap.js
- * Downloads .bin file, decodes IMGX format, returns decoded webp image.
+ * 
+ * For v2: Decodes locally (XOR + unshuffle)
+ * For v3: Sends to Worker for AES-256-GCM decryption
  */
 
+load('config.js');
+
 var IMGX_HEADER_BYTES = 13;
-var IMGX_KEY_BYTES = 32;
 
 // ==================== Base64 ====================
 
@@ -93,7 +96,7 @@ function nextXS32(v) {
 
 // ==================== Grant Key Unwrap ====================
 
-function unwrapKey(grant, storageKey) {
+function unwrapKey(grant, storageKey, keyField) {
     var sk = storageKey.replace(/^\s+|\s+$/g, '').replace(/^\/+/, '');
     var material = [
         'IMGX-GRANT-WRAP-v1', grant.version, grant.algorithm,
@@ -101,7 +104,7 @@ function unwrapKey(grant, storageKey) {
         grant.nonce, grant.keyNonce, grant.signature, sk
     ].join('.');
 
-    var wrapped = b64urlDecode(grant.wrappedDecodeKey);
+    var wrapped = b64urlDecode(grant[keyField]);
     var matBytes = utf8encode(material);
     var seed = fnv1a32(matBytes);
     var key = new Array(wrapped.length);
@@ -114,16 +117,14 @@ function unwrapKey(grant, storageKey) {
     return key;
 }
 
-// ==================== IMGX Decode ====================
+// ==================== IMGX v2 Decode ====================
 
-function decodeImgx(bytes, grant, storageKey) {
+function decodeImgxV2(bytes, grant, storageKey) {
     if (bytes.length <= IMGX_HEADER_BYTES) return null;
-    // Verify magic "IMGX"
     if (bytes[0] !== 0x49 || bytes[1] !== 0x4D || bytes[2] !== 0x47 || bytes[3] !== 0x58) return null;
-    // Only v2 is supported; v3+ uses a different algorithm
     if (bytes[4] !== 2) return null;
 
-    var key = unwrapKey(grant, storageKey);
+    var key = unwrapKey(grant, storageKey, 'wrappedDecodeKey');
     var pLen = bytes.length - IMGX_HEADER_BYTES;
     var p = new Array(pLen);
     for (var i = 0; i < pLen; i++) p[i] = bytes[IMGX_HEADER_BYTES + i];
@@ -149,6 +150,51 @@ function decodeImgx(bytes, grant, storageKey) {
     return p;
 }
 
+// ==================== IMGX v3 Decode via Worker ====================
+
+function decodeImgxV3ViaWorker(downloadUrl, grant, storageKey) {
+    var bodyStr = JSON.stringify({
+        downloadUrl: downloadUrl,
+        grant: grant,
+        storageKey: storageKey
+    });
+
+    // POST to Worker
+    try {
+        var resp = fetch(WORKER_URL + "/decode", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: bodyStr
+        });
+        if (resp.ok) {
+            var imgB64 = resp.base64();
+            var image = Graphics.createImage(imgB64);
+            if (image) {
+                var canvas = Graphics.createCanvas(image.width, image.height);
+                canvas.drawImage(image, 0, 0, image.width, image.height, 0, 0, image.width, image.height);
+                return canvas.capture();
+            }
+        }
+    } catch (e) {}
+
+    try {
+        var res = Http.post(WORKER_URL + "/decode").headers({
+            "Content-Type": "application/json"
+        }).body(bodyStr);
+        if (res.status() === 200) {
+            var imgB64_2 = res.base64();
+            var image2 = Graphics.createImage(imgB64_2);
+            if (image2) {
+                var canvas2 = Graphics.createCanvas(image2.width, image2.height);
+                canvas2.drawImage(image2, 0, 0, image2.width, image2.height, 0, 0, image2.width, image2.height);
+                return canvas2.capture();
+            }
+        }
+    } catch (e) {}
+
+    return null;
+}
+
 // ==================== Main ====================
 
 function execute(url) {
@@ -158,19 +204,50 @@ function execute(url) {
     var downloadUrl = url.substring(0, spaceIdx);
     var data = JSON.parse(url.substring(spaceIdx + 1));
 
-    var response = fetch(downloadUrl);
-    if (!response.ok) return null;
+    // Download IMGX binary to check version
+    var imgBytes = null;
+    try {
+        var response = fetch(downloadUrl);
+        if (response.ok) {
+            imgBytes = b64decode(response.base64());
+        }
+    } catch (e) {}
 
-    var imgB64 = response.base64();
-    var imgBytes = b64decode(imgB64);
+    if (!imgBytes) {
+        try {
+            var res = Http.get(downloadUrl).headers({"User-Agent": "Mozilla/5.0"});
+            if (res.status() === 200) {
+                imgBytes = b64decode(res.base64());
+            }
+        } catch (e) {}
+    }
 
-    var webpBytes = decodeImgx(imgBytes, data.grant, data.storageKey);
-    if (!webpBytes) return null;
+    if (!imgBytes || imgBytes.length <= IMGX_HEADER_BYTES) return null;
 
-    var webpB64 = b64encode(webpBytes);
-    var image = Graphics.createImage(webpB64);
-    if (!image) return null;
-    var canvas = Graphics.createCanvas(image.width, image.height);
-    canvas.drawImage(image, 0, 0, image.width, image.height, 0, 0, image.width, image.height);
-    return canvas.capture();
+    var version = imgBytes[4];
+
+    // V2: Decode locally
+    if (version === 2 && data.grant && data.grant.wrappedDecodeKey) {
+        var webpBytes = decodeImgxV2(imgBytes, data.grant, data.storageKey);
+        if (!webpBytes) return null;
+
+        var webpB64 = b64encode(webpBytes);
+        var image = Graphics.createImage(webpB64);
+        if (!image) return null;
+        var canvas = Graphics.createCanvas(image.width, image.height);
+        canvas.drawImage(image, 0, 0, image.width, image.height, 0, 0, image.width, image.height);
+        return canvas.capture();
+    }
+
+    // V3: Send to Worker for AES-256-GCM decryption
+    if (version === 3 && data.grant && data.grant.wrappedContentKey) {
+        return decodeImgxV3ViaWorker(data.downloadUrl || downloadUrl, data.grant, data.storageKey);
+    }
+
+    // V3 without wrappedContentKey — try Worker anyway (it may fail)
+    if (version === 3) {
+        return decodeImgxV3ViaWorker(data.downloadUrl || downloadUrl, data.grant, data.storageKey);
+    }
+
+    return null;
 }

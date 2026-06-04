@@ -51,11 +51,11 @@
     {
       "name": "Mòe Truyện",
       "author": "phusi319",
-      "path": "https://raw.githubusercontent.com/phusi319/vbook-extensions/main/moetruyen/plugin.zip?v=2",
-      "version": 2,
+      "path": "https://raw.githubusercontent.com/phusi319/vbook-extensions/main/moetruyen/plugin.zip?v=3",
+      "version": 3,
       "source": "https://moetruyen.net",
       "icon": "https://raw.githubusercontent.com/phusi319/vbook-extensions/main/moetruyen/icon.png",
-      "description": "Đọc truyện trên MoeTruyen.net qua API công khai",
+      "description": "Đọc truyện trên MoeTruyen — hỗ trợ IMGX v2+v3 qua Worker proxy",
       "type": "comic",
       "locale": "vi_VN"
     }

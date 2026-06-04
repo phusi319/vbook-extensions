@@ -4,6 +4,9 @@ function execute(url) {
     var mangaId = parseMangaId(url);
     if (!mangaId) return null;
 
+    // Extract slug from the detail page URL for Worker usage
+    var mangaSlug = parseMangaSlug(url);
+
     var chapters = [];
     var page = 1;
 
@@ -20,9 +23,13 @@ function execute(url) {
                 chapterName += " [" + ch.groupName + "]";
             }
 
+            // URL format: chapterId|pages|mangaSlug|chapterNum
+            // Worker needs mangaSlug + chapterNum to build truyen.moe URL
+            var chapterUrl = ch.id + "|" + ch.pages + "|" + (mangaSlug || mangaId) + "|" + ch.numberText;
+
             chapters.push({
                 name: chapterName,
-                url: BASE_URL + "/chapter/" + ch.id + "?pages=" + ch.pages,
+                url: chapterUrl,
                 host: BASE_URL
             });
         });

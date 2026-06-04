@@ -1,5 +1,6 @@
 var API_URL = "https://moe.suicaodex.com";
 var BASE_URL = "https://moetruyen.net";
+var WORKER_URL = "https://moetruyen-imgx-proxy.phusi319.workers.dev";
 
 function fetchApi(url) {
     // Try fetch() first — works best with external APIs
@@ -61,6 +62,12 @@ function postApi(url, body) {
 
 function parseMangaId(url) {
     var match = /\/manga\/(\d+)/.exec(url);
+    return match ? match[1] : null;
+}
+
+function parseMangaSlug(url) {
+    // Extract full slug from URL: /manga/1401-bon-toi-... → "1401-bon-toi-..."
+    var match = /\/manga\/(\d+-[^\/\?\#]+)/.exec(url);
     return match ? match[1] : null;
 }
 
