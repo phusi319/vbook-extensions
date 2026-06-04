@@ -3,7 +3,7 @@ load('config.js');
 function execute(key, page) {
     if (!page) page = '1';
     
-    var requestUrl = API_URL + "/mangas?q=" + key + "&page=" + page + "&per_page=24";
+    var requestUrl = API_URL + "/mangas/quick_search?q=" + key;
     var json = fetchApi(requestUrl);
 
     if (json && json.data) {
