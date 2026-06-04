@@ -2,9 +2,9 @@
   "metadata": {
     "name": "Truyện QQ",
     "author": "phusi319",
-    "version": 15,
+    "version": 16,
     "source": "https://truyenqqko.com",
-    "regexp": ".*truyenqq.*?/truyen-tranh/.*",
+    "regexp": "truyenqq.*?\\.com/truyen-tranh/.*",
     "description": "Đọc truyện tranh trên TruyenQQ",
     "locale": "vi_VN",
     "language": "javascript",
