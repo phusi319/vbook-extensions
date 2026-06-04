@@ -2,7 +2,7 @@
   "metadata": {
     "name": "Cứu Truyện",
     "author": "phusi319",
-    "version": 8,
+    "version": 9,
     "source": "https://cuutruyen.net",
     "regexp": "cuutruyen.*?\\.net/mangas/.*",
     "description": "Đọc truyện trên trang Cứu Truyện",
