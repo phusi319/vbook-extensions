@@ -1,7 +1,7 @@
 load('config.js');
+load('image_decode.js');
 
 function execute(url) {
-    // url could be the API_URL directly because toc.js returns API_URL + "/chapters/" + item.id
     var requestUrl = url;
     if (url.indexOf(API_URL) === -1) {
         var match = /chapters\/(\d+)\/?/.exec(url);
@@ -14,9 +14,21 @@ function execute(url) {
 
     if (json && json.data && json.data.pages) {
         var images = [];
-        json.data.pages.forEach(item => {
-            images.push(item.image_url);
+        var drmData = [];
+        var pages = json.data.pages;
+        
+        pages.forEach(item => {
+            drmData.push(item.drm_data.replace(/\n/g, ""));
         });
+        
+        var decryptData = JSON.parse(imageDecode(JSON.stringify(drmData)));
+
+        for (var i = 0; i < pages.length; i++) {
+            images.push({
+                link: pages[i].image_url + " " + JSON.stringify(decryptData[i]),
+                script: "image.js"
+            });
+        }
         return Response.success(images);
     }
 
