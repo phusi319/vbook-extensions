@@ -2,7 +2,7 @@
   "metadata": {
     "name": "Cứu Truyện",
     "author": "phusi319",
-    "version": 1,
+    "version": 2,
     "source": "https://cuutruyen.net",
     "regexp": "cuutruyen.*?\\.net/mangas/.*",
     "description": "Đọc truyện trên trang Cứu Truyện",
@@ -11,10 +11,10 @@
     "type": "comic"
   },
   "script": {
-    "home": "src/home.js",
-    "detail": "src/detail.js",
-    "search": "src/search.js",
-    "toc": "src/toc.js",
-    "chap": "src/chap.js"
+    "home": "home.js",
+    "detail": "detail.js",
+    "search": "search.js",
+    "toc": "toc.js",
+    "chap": "chap.js"
   }
 }
