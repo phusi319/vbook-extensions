@@ -2,7 +2,7 @@
   "metadata": {
     "name": "NetTruyen",
     "author": "phusi319",
-    "version": 2,
+    "version": 3,
     "source": "https://nettruyen9s.com",
     "regexp": "nettruyen.*?\\.com/manga/.*",
     "description": "Đọc truyện tranh trên NetTruyen",
