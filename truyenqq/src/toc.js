@@ -16,13 +16,16 @@ function execute(url) {
     var doc = null;
     try {
         doc = Http.get(url).html();
-    } catch (e) {
-        return Response.success([{
-            name: "Lỗi Fetch/Bị Chặn: " + String(e),
-            url: url,
-            host: BASE_URL
-        }]);
+    } catch (e) {}
+
+    if (!doc || doc.select('title').text().indexOf('Just a moment') !== -1 || !doc.select('.works-chapter-list').first()) {
+        try {
+            var browser = Engine.newBrowser();
+            doc = browser.launch(url, 5000);
+            browser.close();
+        } catch (e) {}
     }
+
     if (!doc) return null;
 
     var list = [];

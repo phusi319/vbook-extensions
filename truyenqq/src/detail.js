@@ -15,32 +15,38 @@ function execute(url) {
     url = url.replace(/^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:\/\n?]+)/i, BASE_URL);
 
     var doc = null;
-    var errorMsg = "Unknown";
     try {
         doc = Http.get(url).html();
-    } catch (e) {
-        errorMsg = String(e);
+    } catch (e) {}
+
+    // Fallback to Engine.newBrowser if Http.get fails or hits Cloudflare or an ad
+    if (!doc || doc.select('title').text().indexOf('Just a moment') !== -1 || !doc.select('.book_info').first()) {
+        try {
+            var browser = Engine.newBrowser();
+            doc = browser.launch(url, 5000);
+            browser.close();
+        } catch (e) {
+            return Response.success({
+                name: "Lỗi Browser/Bị Chặn (v15)",
+                cover: "",
+                host: BASE_URL,
+                author: "",
+                description: "Không thể dùng Engine.newBrowser: " + String(e),
+                detail: "Vui lòng mở Web View để bypass Cloudflare.",
+                ongoing: true,
+                genres: []
+            });
+        }
     }
     
     if (!doc) {
-        return Response.success({
-            name: "Lỗi Fetch/Bị Chặn (v14)",
-            cover: "",
-            host: BASE_URL,
-            author: "",
-            description: "Không thể fetch URL: " + url + "<br>Lỗi: " + errorMsg,
-            detail: "Debug URL",
-            ongoing: true,
-            genres: []
-        });
-    }
 
     var name = '';
     var h1 = doc.select('h1[itemprop=name]').first();
     if (h1) name = h1.text();
     if (!name) {
         return Response.success({
-            name: "Lỗi Parsing / Bị Chặn (v14)",
+            name: "Lỗi Parsing / Bị Chặn (v15)",
             cover: "",
             host: BASE_URL,
             author: "",
