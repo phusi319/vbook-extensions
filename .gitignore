@@ -1,0 +1,6 @@
+node_modules/
+package.json
+package-lock.json
+*.html
+test_*.js
+fetch_detail.js
