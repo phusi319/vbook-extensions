@@ -41,6 +41,17 @@ function execute(url) {
 
         var description = data.full_description || data.description || "";
 
+        var genresArr = [];
+        if (data.tags && data.tags.length) {
+            for (var i = 0; i < data.tags.length; i++) {
+                genresArr.push({
+                    title: data.tags[i].name,
+                    input: API_URL + "/mangas/search?tags=\"" + data.tags[i].name + "\"",
+                    script: "gen.js"
+                });
+            }
+        }
+
         return Response.success({
             name: data.name,
             cover: data.cover_url,
@@ -48,7 +59,8 @@ function execute(url) {
             description: description,
             detail: detail,
             host: BASE_URL,
-            ongoing: !isCompleted
+            ongoing: !isCompleted,
+            genres: genresArr
         });
     }
 
