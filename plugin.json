@@ -50,12 +50,12 @@
     },
     {
       "name": "Mòe Truyện",
-      "author": "TNTKien (API)",
+      "author": "phusi319",
       "path": "https://raw.githubusercontent.com/phusi319/vbook-extensions/main/moetruyen/plugin.zip?v=1",
       "version": 1,
       "source": "https://moetruyen.net",
       "icon": "https://raw.githubusercontent.com/phusi319/vbook-extensions/main/moetruyen/icon.png",
-      "description": "Đọc truyện tranh Mòe Truyện chất lượng cao",
+      "description": "Đọc truyện trên MoeTruyen.net qua API công khai",
       "type": "comic",
       "locale": "vi_VN"
     }

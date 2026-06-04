@@ -1,58 +1,34 @@
 load('config.js');
 
 function execute(url, page) {
-    if (!page) page = "1";
-    
-    // Determine limit
-    var limit = 20;
-    
-    var requestPath = url;
-    if (requestPath.indexOf('?') !== -1) {
-        requestPath += "&page=" + page + "&limit=" + limit;
+    if (!page) page = '1';
+    var pageNum = parseInt(page);
+
+    var requestUrl = url;
+    if (requestUrl.indexOf('page=') >= 0) {
+        requestUrl = requestUrl.replace(/page=\d+/, 'page=' + pageNum);
     } else {
-        requestPath += "?page=" + page + "&limit=" + limit;
+        requestUrl += (requestUrl.indexOf('?') >= 0 ? '&' : '?') + 'page=' + pageNum;
     }
-    
-    var data = fetchApi(requestPath);
-    if (data && data.success && data.data) {
-        var results = [];
-        data.data.forEach(function(item) {
-            var coverUrl = item.coverUrl || (item.cover ? "https://u.truyen.moe/uploads/covers/" + item.cover : "");
-            
-            var description = "";
-            // Handle ranking/views if available
-            if (item.ranking && item.ranking.value) {
-                var val = item.ranking.value;
-                if (item.ranking.sortBy === 'views') {
-                    description = (val >= 1000 ? (val/1000).toFixed(1) + "k" : val) + " views";
-                } else if (item.ranking.sortBy === 'bookmarks') {
-                    description = (val >= 1000 ? (val/1000).toFixed(1) + "k" : val) + " bookmarks";
-                }
-            } else if (item.latestChapterNumberText) {
-                description = "Chương " + item.latestChapterNumberText;
-            } else if (item.chapterCount) {
-                description = item.chapterCount + " chương";
-            }
-            
-            results.push({
-                name: item.title,
-                link: BASE_URL + "/manga/" + item.id + "-" + item.slug,
-                cover: coverUrl,
-                description: description,
-                host: BASE_URL
-            });
+
+    var json = fetchApi(requestUrl);
+    if (json && json.data) {
+        var novels = [];
+        var items = Array.isArray(json.data) ? json.data : [];
+
+        items.forEach(function(item) {
+            novels.push(mapManga(item));
         });
-        
-        var next = "";
-        if (data.meta && data.meta.pagination) {
-            var p = data.meta.pagination;
-            if (p.page < p.totalPages) {
-                next = (p.page + 1).toString();
+
+        var next = '';
+        if (json.meta && json.meta.pagination) {
+            var pag = json.meta.pagination;
+            if (pag.page < pag.totalPages) {
+                next = (pag.page + 1).toString();
             }
         }
-        
-        return Response.success(results, next);
+
+        return Response.success(novels, next);
     }
-    
     return null;
 }

@@ -1,17 +1,17 @@
 load('config.js');
 
 function execute() {
-    var data = fetchApi("/genres");
-    if (data && data.success && data.data) {
-        var results = [];
-        data.data.forEach(function(item) {
-            results.push({
-                title: item.name,
-                input: "/manga?genre=" + item.id + "&sort=updated_at",
+    var json = fetchApi(API_URL + "/v2/genres");
+    if (json && json.data) {
+        var genres = [];
+        json.data.forEach(function(g) {
+            genres.push({
+                title: g.name,
+                input: API_URL + "/v2/manga?genre=" + g.id + "&sort=updated_at&limit=30",
                 script: "gen.js"
             });
         });
-        return Response.success(results);
+        return Response.success(genres);
     }
     return null;
 }

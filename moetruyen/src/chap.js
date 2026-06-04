@@ -1,70 +1,49 @@
 load('config.js');
 
 function execute(url) {
-    var chapterId = "";
-    var match = url.match(/\/chapter\/(\d+)/);
-    if (match) {
-        chapterId = match[1];
-    }
+    var chapterId = parseChapterId(url);
     if (!chapterId) return null;
-    
-    // 1. Get total pages for this chapter by fetching chapter info
-    // But wait, there is no direct /chapters/{id} info endpoint in the API docs?
-    // Let's try to fetch page-access for page 0 to see how many pages it returns, 
-    // Wait, the page-access API doesn't return total pages. 
-    // We can just fetch pageIndexes [0,1,2,3,4], then [5,6,7,8,9] until we get no pages or success=false
-    
+
+    // Get total pages from URL param (embedded by toc.js)
+    var totalPages = 0;
+    var pagesMatch = /[?&]pages=(\d+)/.exec(url);
+    if (pagesMatch) {
+        totalPages = parseInt(pagesMatch[1]);
+    }
+
+    // If no pages param, try to get from API
+    if (totalPages <= 0) {
+        totalPages = 50; // fallback, request in batches and stop when done
+    }
+
     var images = [];
-    var chunk = 5; // maxWindow is 5
-    var currentIndex = 0;
-    var hasMore = true;
-    
-    while (hasMore) {
+    var batchSize = 5; // API maxWindow = 5
+
+    for (var start = 0; start < totalPages; start += batchSize) {
         var pageIndexes = [];
-        for (var i = 0; i < chunk; i++) {
-            pageIndexes.push(currentIndex + i);
+        for (var j = start; j < Math.min(start + batchSize, totalPages); j++) {
+            pageIndexes.push(j);
         }
-        
-        var requestUrl = API_URL + "/chapters/" + chapterId + "/page-access";
-        var headers = {
-            'Origin': 'https://moetruyen.net',
-            'User-Agent': 'Mozilla/5.0',
-            'Content-Type': 'application/json'
-        };
-        
-        var response = fetch(requestUrl, {
-            method: 'POST',
-            headers: headers,
-            body: JSON.stringify({ pageIndexes: pageIndexes })
+
+        var json = postApi(API_URL + "/v2/chapters/" + chapterId + "/page-access", {
+            pageIndexes: pageIndexes
         });
-        
-        if (response.ok) {
-            var data = response.json();
-            if (data && data.success && data.data && data.data.pages && data.data.pages.length > 0) {
-                var pages = data.data.pages;
-                for (var j = 0; j < pages.length; j++) {
-                    var p = pages[j];
-                    // Link format: downloadUrl [SPACE] grantJSON_string
-                    images.push({
-                        link: p.downloadUrl + " " + JSON.stringify(p.grant),
-                        script: "image.js"
-                    });
-                }
-                currentIndex += pages.length;
-                if (pages.length < chunk) {
-                    hasMore = false; // Last chunk
-                }
-            } else {
-                hasMore = false;
-            }
-        } else {
-            hasMore = false; // Error or end
+
+        if (!json || !json.data || !json.data.pages) break;
+
+        var pages = json.data.pages;
+        for (var i = 0; i < pages.length; i++) {
+            var p = pages[i];
+            var decodeData = JSON.stringify({
+                grant: p.grant,
+                storageKey: p.storageKey
+            });
+            images.push({
+                link: p.downloadUrl + " " + decodeData,
+                script: "image.js"
+            });
         }
     }
-    
-    if (images.length > 0) {
-        return Response.success(images);
-    }
-    
-    return null;
+
+    return Response.success(images);
 }

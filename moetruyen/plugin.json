@@ -1,23 +1,21 @@
 {
-    "metadata": {
-        "name": "Mòe Truyện",
-        "author": "TNTKien (API)",
-        "version": 1,
-        "source": "https://moetruyen.net",
-        "regexp": "moetruyen\\.net/manga/\\d+-[^/]+",
-        "description": "Đọc truyện tranh Mòe Truyện chất lượng cao",
-        "locale": "vi_VN",
-        "language": "javascript",
-        "type": "comic"
-    },
-    "script": {
-        "home": "src/home.js",
-        "genre": "src/genre.js",
-        "detail": "src/detail.js",
-        "search": "src/search.js",
-        "page": "src/toc.js",
-        "toc": "src/toc.js",
-        "chap": "src/chap.js",
-        "gen": "src/gen.js"
-    }
+  "metadata": {
+    "name": "Mòe Truyện",
+    "author": "phusi319",
+    "version": 1,
+    "source": "https://moetruyen.net",
+    "regexp": "moetruyen\\.net/manga/\\d+.*",
+    "description": "Đọc truyện trên MoeTruyen.net qua API công khai",
+    "locale": "vi_VN",
+    "language": "javascript",
+    "type": "comic"
+  },
+  "script": {
+    "home": "home.js",
+    "genre": "genre.js",
+    "detail": "detail.js",
+    "search": "search.js",
+    "toc": "toc.js",
+    "chap": "chap.js"
+  }
 }
