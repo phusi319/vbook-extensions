@@ -1,30 +1,73 @@
 /**
- * image.js — IMGX Image Decoder for MoeTruyen
+ * image.js — IMGX Image Decoder for MoeTruyen (Pure JavaScript, no Java)
  *
  * Receives: "downloadUrl {grant, storageKey}" from chap.js
  * Downloads .bin file, decodes IMGX format, returns decoded webp image.
- *
- * IMGX v2 format:
- *   Header: 4 bytes magic "IMGX" + 1 byte version + 4 bytes width (BE) + 4 bytes height (BE) = 13 bytes
- *   Payload: shuffled + XOR encrypted webp data
- *
- * Decode steps:
- *   1. Unwrap decode key from grant (XOR with mask derived from grant fields)
- *   2. Unshuffle payload bytes (reverse Fisher-Yates using XorShift32 PRNG)
- *   3. XOR payload with decode key (repeating)
- *   4. Result is raw webp
  */
 
 var IMGX_HEADER_BYTES = 13;
 var IMGX_KEY_BYTES = 32;
 
-// ==================== Base64URL ====================
+// ==================== Base64 ====================
 
-function base64UrlToBytes(value) {
-    var normalized = value.replace(/-/g, '+').replace(/_/g, '/');
-    while (normalized.length % 4 !== 0) normalized += '=';
-    var decoder = java.util.Base64.getDecoder();
-    return decoder.decode(normalized);
+var B64_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+var B64_LOOKUP = {};
+for (var _i = 0; _i < B64_CHARS.length; _i++) B64_LOOKUP[B64_CHARS.charAt(_i)] = _i;
+
+function b64decode(str) {
+    str = str.replace(/[\s=]+/g, '');
+    var len = str.length;
+    var bytes = [];
+    for (var i = 0; i < len; i += 4) {
+        var a = B64_LOOKUP[str.charAt(i)] || 0;
+        var b = B64_LOOKUP[str.charAt(i + 1)] || 0;
+        var c = (i + 2 < len) ? (B64_LOOKUP[str.charAt(i + 2)] || 0) : -1;
+        var d = (i + 3 < len) ? (B64_LOOKUP[str.charAt(i + 3)] || 0) : -1;
+        bytes.push((a << 2) | (b >> 4));
+        if (c !== -1) bytes.push(((b & 0xF) << 4) | (c >> 2));
+        if (d !== -1) bytes.push(((c & 0x3) << 6) | d);
+    }
+    return bytes;
+}
+
+function b64encode(bytes) {
+    var result = [];
+    var len = bytes.length;
+    for (var i = 0; i < len; i += 3) {
+        var b0 = bytes[i];
+        var b1 = (i + 1 < len) ? bytes[i + 1] : 0;
+        var b2 = (i + 2 < len) ? bytes[i + 2] : 0;
+        result.push(B64_CHARS.charAt(b0 >> 2));
+        result.push(B64_CHARS.charAt(((b0 & 0x3) << 4) | (b1 >> 4)));
+        result.push((i + 1 < len) ? B64_CHARS.charAt(((b1 & 0xF) << 2) | (b2 >> 6)) : '=');
+        result.push((i + 2 < len) ? B64_CHARS.charAt(b2 & 0x3F) : '=');
+    }
+    return result.join('');
+}
+
+function b64urlDecode(str) {
+    str = str.replace(/-/g, '+').replace(/_/g, '/');
+    return b64decode(str);
+}
+
+// ==================== UTF-8 encode ====================
+
+function utf8encode(str) {
+    var bytes = [];
+    for (var i = 0; i < str.length; i++) {
+        var c = str.charCodeAt(i);
+        if (c < 0x80) {
+            bytes.push(c);
+        } else if (c < 0x800) {
+            bytes.push(0xC0 | (c >> 6));
+            bytes.push(0x80 | (c & 0x3F));
+        } else {
+            bytes.push(0xE0 | (c >> 12));
+            bytes.push(0x80 | ((c >> 6) & 0x3F));
+            bytes.push(0x80 | (c & 0x3F));
+        }
+    }
+    return bytes;
 }
 
 // ==================== FNV-1a 32-bit ====================
@@ -32,7 +75,7 @@ function base64UrlToBytes(value) {
 function fnv1a32(bytes) {
     var hash = 0x811c9dc5;
     for (var i = 0; i < bytes.length; i++) {
-        hash ^= (bytes[i] & 0xFF);
+        hash ^= bytes[i] & 0xFF;
         hash = Math.imul(hash, 0x01000193) >>> 0;
     }
     return hash || 0x9e3779b9;
@@ -40,8 +83,8 @@ function fnv1a32(bytes) {
 
 // ==================== XorShift32 PRNG ====================
 
-function nextXorShift32(value) {
-    var x = value >>> 0;
+function nextXS32(v) {
+    var x = v >>> 0;
     x ^= (x << 13) >>> 0;
     x ^= x >>> 17;
     x ^= (x << 5) >>> 0;
@@ -50,135 +93,80 @@ function nextXorShift32(value) {
 
 // ==================== Grant Key Unwrap ====================
 
-function normalizeStorageKey(storageKey) {
-    return storageKey.replace(/^\s+|\s+$/g, '').replace(/^\/+/, '');
-}
-
-function createGrantKeyWrapMaterial(grant, storageKey) {
-    return [
-        'IMGX-GRANT-WRAP-v1',
-        grant.version,
-        grant.algorithm,
-        grant.imageId,
-        grant.issuedAt,
-        grant.expiresAt,
-        grant.nonce,
-        grant.keyNonce,
-        grant.signature,
-        normalizeStorageKey(storageKey)
+function unwrapKey(grant, storageKey) {
+    var sk = storageKey.replace(/^\s+|\s+$/g, '').replace(/^\/+/, '');
+    var material = [
+        'IMGX-GRANT-WRAP-v1', grant.version, grant.algorithm,
+        grant.imageId, grant.issuedAt, grant.expiresAt,
+        grant.nonce, grant.keyNonce, grant.signature, sk
     ].join('.');
-}
 
-function createGrantKeyMask(material, byteLength) {
-    var mask = new Array(byteLength);
-    var materialBytes = new java.lang.String(material).getBytes('UTF-8');
-    var seed = fnv1a32(materialBytes);
-
-    for (var i = 0; i < byteLength; i++) {
-        if (i % 4 === 0) {
-            seed = nextXorShift32((seed + i + 0x9e3779b9) >>> 0);
-        }
-        mask[i] = (seed >>> ((i % 4) * 8)) & 0xFF;
-    }
-    return mask;
-}
-
-function unwrapDecodeKey(grant, storageKey) {
-    var material = createGrantKeyWrapMaterial(grant, storageKey);
-    var wrapped = base64UrlToBytes(grant.wrappedDecodeKey);
-    var mask = createGrantKeyMask(material, wrapped.length);
-    var decodeKey = new Array(wrapped.length);
+    var wrapped = b64urlDecode(grant.wrappedDecodeKey);
+    var matBytes = utf8encode(material);
+    var seed = fnv1a32(matBytes);
+    var key = new Array(wrapped.length);
 
     for (var i = 0; i < wrapped.length; i++) {
-        decodeKey[i] = ((wrapped[i] & 0xFF) ^ mask[i]) & 0xFF;
+        if (i % 4 === 0) seed = nextXS32((seed + i + 0x9e3779b9) >>> 0);
+        var maskByte = (seed >>> ((i % 4) * 8)) & 0xFF;
+        key[i] = (wrapped[i] ^ maskByte) & 0xFF;
     }
-    return decodeKey;
+    return key;
 }
 
 // ==================== IMGX Decode ====================
 
-function seedFromKey(key) {
-    if (key.length < 4) return 0x9e3779b9;
-    var seed = ((key[0] & 0xFF) << 24) | ((key[1] & 0xFF) << 16) | ((key[2] & 0xFF) << 8) | (key[3] & 0xFF);
-    seed = seed >>> 0;
-    return seed || 0x9e3779b9;
-}
+function decodeImgx(bytes, grant, storageKey) {
+    if (bytes.length <= IMGX_HEADER_BYTES) return null;
+    // Verify magic "IMGX"
+    if (bytes[0] !== 0x49 || bytes[1] !== 0x4D || bytes[2] !== 0x47 || bytes[3] !== 0x58) return null;
 
-function decodeImgx(imgBytes, grant, storageKey) {
-    // Verify magic
-    if (imgBytes.length <= IMGX_HEADER_BYTES) return null;
-    if ((imgBytes[0] & 0xFF) !== 0x49 || (imgBytes[1] & 0xFF) !== 0x4D ||
-        (imgBytes[2] & 0xFF) !== 0x47 || (imgBytes[3] & 0xFF) !== 0x58) return null;
+    var key = unwrapKey(grant, storageKey);
+    var pLen = bytes.length - IMGX_HEADER_BYTES;
+    var p = new Array(pLen);
+    for (var i = 0; i < pLen; i++) p[i] = bytes[IMGX_HEADER_BYTES + i];
 
-    // Unwrap decode key
-    var decodeKey = unwrapDecodeKey(grant, storageKey);
-
-    // Extract payload (skip 13-byte header)
-    var payloadLen = imgBytes.length - IMGX_HEADER_BYTES;
-    var payload = new Array(payloadLen);
-    for (var i = 0; i < payloadLen; i++) {
-        payload[i] = imgBytes[IMGX_HEADER_BYTES + i] & 0xFF;
-    }
-
-    // Step 1: Unshuffle (reverse Fisher-Yates)
-    var keySeed = seedFromKey(decodeKey);
-    // Forward pass: generate swap indices
-    var swaps = new Array(payloadLen);
+    // Unshuffle (reverse Fisher-Yates)
+    var keySeed = ((key[0] << 24) | (key[1] << 16) | (key[2] << 8) | key[3]) >>> 0;
+    if (keySeed === 0) keySeed = 0x9e3779b9;
+    var swaps = new Array(pLen);
     var s = keySeed;
-    for (var i = payloadLen - 1; i > 0; i--) {
-        s = nextXorShift32(s);
+    for (var i = pLen - 1; i > 0; i--) {
+        s = nextXS32(s);
         swaps[i] = s % (i + 1);
     }
-    // Reverse pass: undo swaps
-    for (var i = 1; i < payloadLen; i++) {
-        if (i !== swaps[i]) {
-            var tmp = payload[i];
-            payload[i] = payload[swaps[i]];
-            payload[swaps[i]] = tmp;
-        }
+    for (var i = 1; i < pLen; i++) {
+        var j = swaps[i];
+        if (i !== j) { var tmp = p[i]; p[i] = p[j]; p[j] = tmp; }
     }
 
-    // Step 2: XOR with decode key
-    for (var i = 0; i < payloadLen; i++) {
-        payload[i] = (payload[i] ^ decodeKey[i % decodeKey.length]) & 0xFF;
-    }
+    // XOR with key
+    var kLen = key.length;
+    for (var i = 0; i < pLen; i++) p[i] = (p[i] ^ key[i % kLen]) & 0xFF;
 
-    // Convert payload to Java byte array
-    var result = java.lang.reflect.Array.newInstance(java.lang.Byte.TYPE, payloadLen);
-    for (var i = 0; i < payloadLen; i++) {
-        result[i] = (payload[i] > 127) ? (payload[i] - 256) : payload[i];
-    }
-    return result;
+    return p;
 }
 
-// ==================== Main Entry ====================
+// ==================== Main ====================
 
 function execute(url) {
-    // Parse downloadUrl and decode data
     var spaceIdx = url.indexOf(' ');
     if (spaceIdx < 0) return null;
 
     var downloadUrl = url.substring(0, spaceIdx);
-    var dataJson = url.substring(spaceIdx + 1);
-    var data = JSON.parse(dataJson);
+    var data = JSON.parse(url.substring(spaceIdx + 1));
 
-    // Download .bin file
     var response = fetch(downloadUrl);
     if (!response.ok) return null;
 
-    var imgBase64 = response.base64();
-    var decoder = java.util.Base64.getDecoder();
-    var imgBytes = decoder.decode(imgBase64);
+    var imgB64 = response.base64();
+    var imgBytes = b64decode(imgB64);
 
-    // Decode IMGX
     var webpBytes = decodeImgx(imgBytes, data.grant, data.storageKey);
     if (!webpBytes) return null;
 
-    // Encode decoded webp as base64 and create image
-    var encoder = java.util.Base64.getEncoder();
-    var webpBase64 = encoder.encodeToString(webpBytes);
-
-    var image = Graphics.createImage(webpBase64);
+    var webpB64 = b64encode(webpBytes);
+    var image = Graphics.createImage(webpB64);
     var canvas = Graphics.createCanvas(image.width, image.height);
     canvas.drawImage(image, 0, 0, image.width, image.height, 0, 0, image.width, image.height);
     return canvas.capture();
