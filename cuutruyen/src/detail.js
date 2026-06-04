@@ -28,6 +28,15 @@ function execute(url) {
         if (team) detail += "<br>Nhóm dịch: " + team;
         if (titles) detail += "<br>Tên khác: " + titles;
         if (genres) detail += "<br>Thể loại: " + genres;
+        
+        var updated = data.newest_chapter_created_at || data.updated_at || "";
+        if (updated) {
+            var dateParts = updated.split("T")[0].split("-");
+            if (dateParts.length === 3) {
+                detail += "<br>Cập nhật: " + dateParts[2] + "/" + dateParts[1] + "/" + dateParts[0];
+            }
+        }
+        
         detail += "<br>" + (data.chapters_count || 0) + " Chương";
 
         var description = data.full_description || data.description || "";
