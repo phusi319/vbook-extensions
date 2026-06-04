@@ -24,7 +24,7 @@ function execute(url) {
     
     if (!doc) {
         return Response.success({
-            name: "Lỗi Fetch/Bị Chặn",
+            name: "Lỗi Fetch/Bị Chặn (v12)",
             cover: "",
             host: BASE_URL,
             author: "",

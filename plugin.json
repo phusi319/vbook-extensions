@@ -29,8 +29,8 @@
     {
       "name": "Truyện QQ",
       "author": "phusi319",
-      "path": "https://raw.githubusercontent.com/phusi319/vbook-extensions/main/truyenqq/plugin.zip",
-      "version": 11,
+      "path": "https://raw.githubusercontent.com/phusi319/vbook-extensions/main/truyenqq/plugin.zip?v=12",
+      "version": 12,
       "source": "https://truyenqqko.com",
       "icon": "https://raw.githubusercontent.com/phusi319/vbook-extensions/main/truyenqq/icon.png",
       "description": "Đọc truyện tranh trên TruyenQQ",
