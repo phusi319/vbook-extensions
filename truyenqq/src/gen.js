@@ -25,6 +25,9 @@ function execute(url, page) {
         var name = e.select('.book_name').text();
         var linkEl = e.select('.book_name a').first();
         var link = linkEl ? linkEl.attr('href') : '';
+        if (link && link.indexOf('http') !== 0) {
+            link = BASE_URL + link;
+        }
         var desc = e.select('.last_chapter').text();
 
         if (name && link) {

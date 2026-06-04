@@ -9,9 +9,7 @@ def make_plugin_zip(ext_dir, output_zip):
         if os.path.exists(icon):
             zf.write(icon, 'icon.png')
         src_dir = os.path.join(ext_dir, 'src')
-        # Add the explicit directory entry for Java compatibility
-        dir_info = zipfile.ZipInfo('src/')
-        zf.writestr(dir_info, '')
+
         
         for f in sorted(os.listdir(src_dir)):
             zf.write(os.path.join(src_dir, f), 'src/' + f)
