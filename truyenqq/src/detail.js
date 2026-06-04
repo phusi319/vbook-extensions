@@ -84,9 +84,13 @@ function execute(url) {
     var genreEls = doc.select('.book_info .list01 a');
     for (var i = 0; i < genreEls.size(); i++) {
         var g = genreEls.get(i);
+        var href = g.attr('href');
+        if (href.indexOf('http') === 0) {
+            href = href.replace(/^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:\/\n?]+)/i, "");
+        }
         genres.push({
             title: g.text(),
-            input: BASE_URL + g.attr('href'),
+            input: href,
             script: 'gen.js'
         });
     }
