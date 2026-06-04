@@ -15,7 +15,7 @@ function execute(url) {
 
     var doc = null;
     try {
-        doc = fetch(url).html();
+        doc = Http.get(url).html();
     } catch (e) {
         return Response.success([{
             name: "Lỗi Fetch/Bị Chặn: " + String(e),

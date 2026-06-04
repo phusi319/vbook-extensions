@@ -17,14 +17,14 @@ function execute(url) {
     var doc = null;
     var errorMsg = "Unknown";
     try {
-        doc = fetch(url).html();
+        doc = Http.get(url).html();
     } catch (e) {
         errorMsg = String(e);
     }
     
     if (!doc) {
         return Response.success({
-            name: "Lỗi Fetch/Bị Chặn (v12)",
+            name: "Lỗi Fetch/Bị Chặn (v14)",
             cover: "",
             host: BASE_URL,
             author: "",
@@ -40,7 +40,7 @@ function execute(url) {
     if (h1) name = h1.text();
     if (!name) {
         return Response.success({
-            name: "Lỗi Parsing / Bị Chặn (v13)",
+            name: "Lỗi Parsing / Bị Chặn (v14)",
             cover: "",
             host: BASE_URL,
             author: "",
