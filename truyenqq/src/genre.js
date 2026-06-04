@@ -1,8 +1,7 @@
-load('bypass.js');
 load('config.js');
 
 function execute() {
-    var doc = bypass(BASE_URL, fetch(BASE_URL).html());
+    var doc = fetchHtml(BASE_URL);
     if (!doc) return null;
 
     var genres = [];

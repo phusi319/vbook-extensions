@@ -1,22 +1,39 @@
-load('bypass.js');
 load('config.js');
-function execute(url) {
-    url = url.replace(/^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:\/\n?]+)/img, BASE_URL);
 
-    var doc = bypass(url, Http.get(url).html());
-    if(doc) {
-        var list = [];
-        var el = doc.select(".works-chapter-list a");
-        for (var i = el.size() - 1; i >= 0; i--) {
-            var e = el.get(i);
-            list.push({
-                name: e.text(),
-                url: e.attr("href"),
-                host: BASE_URL,
-            });
+function execute(url) {
+    url = String(url);
+    if (url.indexOf('http') !== 0) {
+        if (url.indexOf('//') === 0) {
+            url = 'https:' + url;
+        } else if (url.indexOf('/') === 0) {
+            url = BASE_URL + url;
+        } else {
+            url = BASE_URL + '/' + url;
         }
-        return Response.success(list);
+    }
+    url = url.replace(/^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:\/\n?]+)/i, BASE_URL);
+
+    var doc = fetchHtml(url);
+    if (!doc) return null;
+
+    var list = [];
+    var el = doc.select('.works-chapter-list a');
+    // Reverse order (oldest first)
+    for (var i = el.size() - 1; i >= 0; i--) {
+        var e = el.get(i);
+        list.push({
+            name: e.text(),
+            url: e.attr('href'),
+            host: BASE_URL
+        });
     }
 
-    return null;
+    if (list.length === 0) {
+        return Response.success([{
+            name: "Lỗi tải chương (v19)",
+            url: url,
+            host: BASE_URL
+        }]);
+    }
+    return Response.success(list);
 }
