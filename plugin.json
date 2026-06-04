@@ -36,6 +36,17 @@
       "description": "Đọc truyện tranh trên TruyenQQ",
       "type": "comic",
       "locale": "vi_VN"
+    },
+    {
+      "name": "Cứu Truyện",
+      "author": "phusi319",
+      "path": "https://raw.githubusercontent.com/phusi319/vbook-extensions/main/cuutruyen/plugin.zip?v=1",
+      "version": 1,
+      "source": "https://cuutruyen.net",
+      "icon": "https://raw.githubusercontent.com/phusi319/vbook-extensions/main/cuutruyen/icon.png",
+      "description": "Đọc truyện trên trang Cứu Truyện",
+      "type": "comic",
+      "locale": "vi_VN"
     }
   ]
 }
