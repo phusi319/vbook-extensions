@@ -1,0 +1,23 @@
+{
+    "metadata": {
+        "name": "Mòe Truyện",
+        "author": "TNTKien (API)",
+        "version": 1,
+        "source": "https://moetruyen.net",
+        "regexp": "moetruyen\\.net/manga/\\d+-[^/]+",
+        "description": "Đọc truyện tranh Mòe Truyện chất lượng cao",
+        "locale": "vi_VN",
+        "language": "javascript",
+        "type": "comic"
+    },
+    "script": {
+        "home": "src/home.js",
+        "genre": "src/genre.js",
+        "detail": "src/detail.js",
+        "search": "src/search.js",
+        "page": "src/toc.js",
+        "toc": "src/toc.js",
+        "chap": "src/chap.js",
+        "gen": "src/gen.js"
+    }
+}

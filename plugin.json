@@ -47,6 +47,17 @@
       "description": "Đọc truyện trên trang Cứu Truyện",
       "type": "comic",
       "locale": "vi_VN"
+    },
+    {
+      "name": "Mòe Truyện",
+      "author": "TNTKien (API)",
+      "path": "https://raw.githubusercontent.com/phusi319/vbook-extensions/main/moetruyen/plugin.zip?v=1",
+      "version": 1,
+      "source": "https://moetruyen.net",
+      "icon": "https://raw.githubusercontent.com/phusi319/vbook-extensions/main/moetruyen/icon.png",
+      "description": "Đọc truyện tranh Mòe Truyện chất lượng cao",
+      "type": "comic",
+      "locale": "vi_VN"
     }
   ]
 }
