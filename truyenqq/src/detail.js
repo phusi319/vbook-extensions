@@ -77,6 +77,15 @@ function execute(url) {
             lines.push('<b>' + label + ':</b> ' + value);
         }
     }
+    
+    var timeEl = doc.select(".time-chap").first();
+    if (timeEl) {
+        var updated = String(timeEl.text()).trim();
+        if (updated) {
+            lines.push('<b>Cập nhật:</b> ' + updated);
+        }
+    }
+
     var detail = lines.join('<br>');
 
     // Genres
