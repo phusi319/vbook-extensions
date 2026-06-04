@@ -12,7 +12,7 @@ def make_plugin_zip(ext_dir, output_zip):
 
         
         for f in sorted(os.listdir(src_dir)):
-            zf.write(os.path.join(src_dir, f), 'src/' + f)
+            zf.write(os.path.join(src_dir, f), f)
 
 if __name__ == '__main__':
     make_plugin_zip(sys.argv[1], sys.argv[2])
