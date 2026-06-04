@@ -6,7 +6,6 @@ function execute() {
         {title: "Top Tháng", input: "/top-thang", script: "gen.js"},
         {title: "Yêu Thích", input: "/truyen-yeu-thich", script: "gen.js"},
         {title: "Truyện Mới", input: "/truyen-tranh-moi", script: "gen.js"},
-        {title: "Truyện Full", input: "/truyen-hoan-thanh", script: "gen.js"},
-        {title: "Truyện Ngẫu Nhiên", input: "/truyen-ngau-nhien", script: "gen.js"}
+        {title: "Truyện Full", input: "/truyen-hoan-thanh", script: "gen.js"}
     ]);
 }
