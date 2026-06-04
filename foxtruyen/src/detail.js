@@ -69,13 +69,22 @@ function execute(url) {
         var descEl = doc.select(".fx-synopsis__text").first();
         if (descEl) description = descEl.html();
 
+        var detailStr = buildDetail(doc);
+        var timeEl = doc.select(".fx-chap-item__date").first();
+        if (timeEl) {
+            var updated = String(timeEl.text()).trim();
+            if (updated) {
+                detailStr += (detailStr ? '<br>' : '') + '<b>Cập nhật:</b> ' + updated;
+            }
+        }
+
         return Response.success({
             name: name,
             cover: cover,
             host: BASE_URL,
             author: author,
             description: description,
-            detail: buildDetail(doc),
+            detail: detailStr,
             ongoing: ongoing,
             genres: getGenres(doc)
         });

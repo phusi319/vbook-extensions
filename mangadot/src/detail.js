@@ -47,12 +47,23 @@ function execute(url) {
                             }
                         }
 
+                        var detailStr = author;
+                        var updated = String(manga.last_chapter_date || '');
+                        if (updated) {
+                            var dateParts = updated.split(' ')[0].split('-');
+                            if (dateParts.length === 3) {
+                                detailStr += (detailStr ? '<br>' : '') + '<b>Cập nhật:</b> ' + dateParts[2] + '/' + dateParts[1] + '/' + dateParts[0];
+                            } else {
+                                detailStr += (detailStr ? '<br>' : '') + '<b>Cập nhật:</b> ' + updated.split(' ')[0];
+                            }
+                        }
+
                         return Response.success({
                             name: name,
                             cover: cover,
                             author: author,
                             description: desc,
-                            detail: author,
+                            detail: detailStr,
                             host: BASE_URL,
                             ongoing: ongoing,
                             genres: genres
