@@ -2,7 +2,7 @@
   "metadata": {
     "name": "Mòe Truyện",
     "author": "phusi319",
-    "version": 1,
+    "version": 2,
     "source": "https://moetruyen.net",
     "regexp": "moetruyen\\.net/manga/\\d+.*",
     "description": "Đọc truyện trên MoeTruyen.net qua API công khai",

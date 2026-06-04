@@ -120,6 +120,8 @@ function decodeImgx(bytes, grant, storageKey) {
     if (bytes.length <= IMGX_HEADER_BYTES) return null;
     // Verify magic "IMGX"
     if (bytes[0] !== 0x49 || bytes[1] !== 0x4D || bytes[2] !== 0x47 || bytes[3] !== 0x58) return null;
+    // Only v2 is supported; v3+ uses a different algorithm
+    if (bytes[4] !== 2) return null;
 
     var key = unwrapKey(grant, storageKey);
     var pLen = bytes.length - IMGX_HEADER_BYTES;
@@ -167,6 +169,7 @@ function execute(url) {
 
     var webpB64 = b64encode(webpBytes);
     var image = Graphics.createImage(webpB64);
+    if (!image) return null;
     var canvas = Graphics.createCanvas(image.width, image.height);
     canvas.drawImage(image, 0, 0, image.width, image.height, 0, 0, image.width, image.height);
     return canvas.capture();

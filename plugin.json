@@ -51,8 +51,8 @@
     {
       "name": "Mòe Truyện",
       "author": "phusi319",
-      "path": "https://raw.githubusercontent.com/phusi319/vbook-extensions/main/moetruyen/plugin.zip?v=1",
-      "version": 1,
+      "path": "https://raw.githubusercontent.com/phusi319/vbook-extensions/main/moetruyen/plugin.zip?v=2",
+      "version": 2,
       "source": "https://moetruyen.net",
       "icon": "https://raw.githubusercontent.com/phusi319/vbook-extensions/main/moetruyen/icon.png",
       "description": "Đọc truyện trên MoeTruyen.net qua API công khai",
