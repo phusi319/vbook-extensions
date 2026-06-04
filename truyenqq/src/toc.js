@@ -13,7 +13,16 @@ function execute(url) {
     }
     url = url.replace(/^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:\/\n?]+)/i, BASE_URL);
 
-    var doc = fetch(url).html();
+    var doc = null;
+    try {
+        doc = fetch(url).html();
+    } catch (e) {
+        return Response.success([{
+            name: "Lỗi Fetch/Bị Chặn: " + String(e),
+            url: url,
+            host: BASE_URL
+        }]);
+    }
     if (!doc) return null;
 
     var list = [];

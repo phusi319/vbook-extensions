@@ -14,14 +14,21 @@ function execute(url) {
     // Normalize domain to BASE_URL
     url = url.replace(/^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:\/\n?]+)/i, BASE_URL);
 
-    var doc = fetch(url).html();
+    var doc = null;
+    var errorMsg = "Unknown";
+    try {
+        doc = fetch(url).html();
+    } catch (e) {
+        errorMsg = String(e);
+    }
+    
     if (!doc) {
         return Response.success({
-            name: "Lỗi Fetch",
+            name: "Lỗi Fetch/Bị Chặn",
             cover: "",
             host: BASE_URL,
             author: "",
-            description: "Không thể fetch URL: " + url,
+            description: "Không thể fetch URL: " + url + "<br>Lỗi: " + errorMsg,
             detail: "Debug URL",
             ongoing: true,
             genres: []
