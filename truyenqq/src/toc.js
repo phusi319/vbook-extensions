@@ -37,6 +37,12 @@ function execute(url) {
         });
     }
 
-    if (list.length === 0) return null;
+    if (list.length === 0) {
+        return Response.success([{
+            name: "Cloudflare / Không tìm thấy chương",
+            url: url,
+            host: BASE_URL
+        }]);
+    }
     return Response.success(list);
 }

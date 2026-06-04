@@ -40,12 +40,12 @@ function execute(url) {
     if (h1) name = h1.text();
     if (!name) {
         return Response.success({
-            name: "Lỗi Parsing H1",
+            name: "Lỗi Parsing / Bị Chặn (v13)",
             cover: "",
             host: BASE_URL,
             author: "",
-            description: "URL đã fetch: " + url + "<br>HTML trả về (500 ký tự đầu): " + doc.html().substring(0, 500).replace(/</g, "&lt;").replace(/>/g, "&gt;"),
-            detail: "Debug HTML",
+            description: "Không tìm thấy tên truyện. Có thể do Cloudflare chặn.",
+            detail: "Vui lòng mở Web View để bypass Cloudflare.",
             ongoing: true,
             genres: []
         });
