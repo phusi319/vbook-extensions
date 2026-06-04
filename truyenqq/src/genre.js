@@ -1,20 +1,18 @@
+load('bypass.js');
 load('config.js');
 
 function execute() {
-    var doc = fetch(BASE_URL).html();
+    var doc = bypass(BASE_URL, fetch(BASE_URL).html());
     if (!doc) return null;
 
     var genres = [];
-    var el = doc.select('.book_tags_content a[href^=/the-loai/]');
-    for (var i = 0; i < el.size(); i++) {
-        var e = el.get(i);
+    doc.select(".book_tags_content a[href^=/the-loai/]").forEach(function(e) {
         genres.push({
-            input: e.attr('href'),
+            input: e.attr("href"),
             title: e.text(),
-            script: 'gen.js'
+            script: "gen.js"
         });
-    }
+    });
 
-    if (genres.length === 0) return null;
     return Response.success(genres);
 }

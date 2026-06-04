@@ -1,53 +1,38 @@
+load('bypass.js');
 load('config.js');
 
 function execute(url) {
-    url = String(url);
-    if (url.indexOf('http') !== 0) {
-        if (url.indexOf('//') === 0) {
-            url = 'https:' + url;
-        } else if (url.indexOf('/') === 0) {
-            url = BASE_URL + url;
-        } else {
-            url = BASE_URL + '/' + url;
-        }
-    }
-    url = url.replace(/^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:\/\n?]+)/i, BASE_URL);
-
-    var doc = fetch(url).html();
-    if (!doc) return null;
-
-    var imgs = doc.select('.chapter_content img.lazy');
-    var data = [];
-    for (var i = 0; i < imgs.size(); i++) {
-        var e = imgs.get(i);
-        var src = e.attr('src');
-        var fallbackUrl = e.attr('data-original');
-
-        // CDN domain rewrites
-        if (fallbackUrl) {
-            if (fallbackUrl.indexOf('mangaqq.net') > -1 || fallbackUrl.indexOf('cdnqq.xyz') > -1) {
-                fallbackUrl = fallbackUrl.replace('mangaqq.net', 'i200.truyenvua.com');
-                fallbackUrl = fallbackUrl.replace('cdnqq.xyz', 'i200.truyenvua.com');
-            } else if (fallbackUrl.indexOf('mangaqq.com') > -1) {
-                fallbackUrl = fallbackUrl.replace('mangaqq.com', 'i216.truyenvua.com');
-            } else if (fallbackUrl.indexOf('trangshop.net') > -1 || fallbackUrl.indexOf('photruyen.com') > -1 || fallbackUrl.indexOf('tintruyen.com') > -1) {
-                fallbackUrl = fallbackUrl.replace('photruyen.com', 'i109.truyenvua.com');
-                fallbackUrl = fallbackUrl.replace('tintruyen.com', 'i109.truyenvua.com');
-                fallbackUrl = fallbackUrl.replace('trangshop.net', 'i109.truyenvua.com');
-            } else if (fallbackUrl.indexOf('tintruyen.net') > -1) {
-                fallbackUrl = fallbackUrl.replace('//tintruyen.net', '//i138.truyenvua.com');
-                fallbackUrl = fallbackUrl.replace('//i125.tintruyen.net', '//i125.truyenvua.com');
-            } else if (fallbackUrl.indexOf('qqtaku.com') > -1) {
-                fallbackUrl = fallbackUrl.replace('qqtaku.com', 'i125.truyenvua.com');
+    url = url.replace(/^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:\/\n?]+)/img, BASE_URL);
+    let doc = bypass(url, fetch(url).html());
+    if (doc) {
+        let imgs = doc.select(".chapter_content img.lazy");
+        let data = [];
+        for (let i = 0; i < imgs.size(); i++) {
+            let e = imgs.get(i);
+            let link = e.attr("data-original")
+            if (link !== undefined) {
+                if (link.indexOf("mangaqq.net") > -1 || link.indexOf("cdnqq.xyz") > -1) {
+                    link = link.replace("mangaqq.net", "i200.truyenvua.com");
+                    link = link.replace("cdnqq.xyz", "i200.truyenvua.com");
+                } else if (link.indexOf("mangaqq.com") > -1) {
+                    link = link.replace("mangaqq.com", "i216.truyenvua.com");
+                } else if (link.indexOf("trangshop.net") > -1 || link.indexOf("photruyen.com") > -1 || link.indexOf("tintruyen.com") > -1) {
+                    link = link.replace("photruyen.com", "i109.truyenvua.com");
+                    link = link.replace("tintruyen.com", "i109.truyenvua.com");
+                    link = link.replace("trangshop.net", "i109.truyenvua.com");
+                } else if (link.indexOf("tintruyen.net") > -1) {
+                    link = link.replace("//tintruyen.net", "//i138.truyenvua.com");
+                    link = link.replace("//i125.tintruyen.net", "//i125.truyenvua.com");
+                } else if (link.indexOf("qqtaku.com") > -1) {
+                    link = link.replace("qqtaku.com", "i125.truyenvua.com");
+                }
             }
+            data.push({
+                link: e.attr("src"),
+                fallback: [link]
+            });
         }
-
-        data.push({
-            link: src,
-            fallback: fallbackUrl ? [fallbackUrl] : []
-        });
+        return Response.success(data);
     }
-
-    if (data.length === 0) return null;
-    return Response.success(data);
+    return null;
 }
