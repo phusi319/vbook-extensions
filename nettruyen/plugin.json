@@ -1,0 +1,21 @@
+{
+  "metadata": {
+    "name": "NetTruyen",
+    "author": "phusi319",
+    "version": 1,
+    "source": "https://nettruyen9s.com",
+    "regexp": "nettruyen.*?\\.com/manga/.*",
+    "description": "Đọc truyện tranh trên NetTruyen",
+    "locale": "vi_VN",
+    "language": "javascript",
+    "type": "comic"
+  },
+  "script": {
+    "home": "home.js",
+    "genre": "genre.js",
+    "detail": "detail.js",
+    "search": "search.js",
+    "toc": "toc.js",
+    "chap": "chap.js"
+  }
+}
