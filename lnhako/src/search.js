@@ -66,19 +66,18 @@ function execute(keyword, page) {
     var nextPage = '';
     var currentPageEl = doc.select('.pagination_wrap .paging_item.current').first();
     if (currentPageEl) {
+        var currentPage = parseInt(currentPageEl.text().trim());
+        var nextText = String(currentPage + 1);
+        
         var allPages = doc.select('.pagination_wrap .paging_item.page_num');
-        var foundCurrent = false;
         for (var j = 0; j < allPages.size(); j++) {
             var pageEl = allPages.get(j);
-            if (foundCurrent) {
+            if (pageEl.text().trim() === nextText) {
                 var nextHref = pageEl.attr('href');
                 if (nextHref) {
                     nextPage = normalizeUrl(nextHref);
                 }
                 break;
-            }
-            if (pageEl.hasClass('current')) {
-                foundCurrent = true;
             }
         }
     }
