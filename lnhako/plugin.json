@@ -2,7 +2,7 @@
   "metadata": {
     "name": "LN Hako",
     "author": "phusi319",
-    "version": 2,
+    "version": 3,
     "source": "https://ln.hako.vn",
     "regexp": "(www.)?ln\\.hako\\.vn/sang-tac/\\d+[^/]*/?$",
     "description": "Đọc Light Novel trên Hako - Cổng Light Novel Việt Nam",
