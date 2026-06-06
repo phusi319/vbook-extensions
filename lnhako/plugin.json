@@ -1,0 +1,21 @@
+{
+  "metadata": {
+    "name": "LN Hako",
+    "author": "phusi319",
+    "version": 1,
+    "source": "https://ln.hako.vn",
+    "regexp": "(www.)?ln\\.hako\\.vn/sang-tac/\\d+[^/]*/?$",
+    "description": "Đọc Light Novel trên Hako - Cổng Light Novel Việt Nam",
+    "locale": "vi_VN",
+    "language": "javascript",
+    "type": "novel"
+  },
+  "script": {
+    "home": "home.js",
+    "genre": "genre.js",
+    "detail": "detail.js",
+    "search": "search.js",
+    "toc": "toc.js",
+    "chap": "chap.js"
+  }
+}

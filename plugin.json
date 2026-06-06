@@ -69,6 +69,17 @@
       "description": "Đọc truyện tranh trên NetTruyen",
       "type": "comic",
       "locale": "vi_VN"
+    },
+    {
+      "name": "LN Hako",
+      "author": "phusi319",
+      "path": "https://raw.githubusercontent.com/phusi319/vbook-extensions/main/lnhako/plugin.zip?v=1",
+      "version": 1,
+      "source": "https://ln.hako.vn",
+      "icon": "https://raw.githubusercontent.com/phusi319/vbook-extensions/main/lnhako/icon.png",
+      "description": "Đọc Light Novel trên Hako - Cổng Light Novel Việt Nam",
+      "type": "novel",
+      "locale": "vi_VN"
     }
   ]
 }
