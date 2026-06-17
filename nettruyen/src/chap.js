@@ -125,12 +125,14 @@ function parseImagesFromHtml(html) {
     return data;
 }
 
-// Lọc URL quảng cáo
+// Lọc URL quảng cáo và ảnh chèn xen kẽ
 function isAdUrl(url) {
     if (url.indexOf('prntscr.com') > -1) return true;
     if (url.indexOf('imgur.com') > -1) return true;
     if (url.indexOf('/uploads/tmp/') > -1) return true;
     if (url.indexOf('x.gd') > -1) return true;
+    // Ảnh chèn branding "mã hóa bởi nettruyen" — domain ai2 vs i2
+    if (url.indexOf('ai2.netcdn.one') > -1) return true;
     return false;
 }
 

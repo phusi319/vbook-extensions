@@ -62,9 +62,9 @@
     {
       "name": "NetTruyen",
       "author": "phusi319",
-      "path": "https://raw.githubusercontent.com/phusi319/vbook-extensions/main/nettruyen/plugin.zip?v=5",
-      "version": 5,
-      "source": "https://nettruyen9s.com",
+      "path": "https://raw.githubusercontent.com/phusi319/vbook-extensions/main/nettruyen/plugin.zip?v=6",
+      "version": 6,
+      "source": "https://nettruyen10s.com",
       "icon": "https://raw.githubusercontent.com/phusi319/vbook-extensions/main/nettruyen/icon.png",
       "description": "Đọc truyện tranh trên NetTruyen",
       "type": "comic",

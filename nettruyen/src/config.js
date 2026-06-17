@@ -1,4 +1,4 @@
-var BASE_URL = 'https://nettruyen9s.com';
+var BASE_URL = 'https://nettruyen10s.com';
 try {
     if (CONFIG_URL) {
         BASE_URL = CONFIG_URL;
