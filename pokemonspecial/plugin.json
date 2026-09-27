@@ -2,7 +2,7 @@
   "metadata": {
     "name": "PokemonSpecial",
     "author": "Antigravity",
-    "version": 1,
+    "version": 2,
     "source": "https://www.pokemonspecial.com",
     "regexp": "pokemonspecial\\.com\\/(?:p\\/|search\\/label\\/)?.*",
     "description": "Đọc truyện Pokemon Đặc Biệt",
