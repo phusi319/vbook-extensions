@@ -1,7 +1,8 @@
 load('config.js');
 
 function execute(url) {
-    var apiUrl = BASE_URL + "/feeds/posts/summary/-/" + encodeURIComponent(url) + "?max-results=1000&alt=json";
+    var label = url.split('/').pop();
+    var apiUrl = BASE_URL + "/feeds/posts/summary/-/" + encodeURIComponent(label) + "?max-results=1000&alt=json";
     
     try {
         var str = Http.get(apiUrl).string();

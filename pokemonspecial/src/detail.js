@@ -1,6 +1,7 @@
 load('config.js');
 
 function execute(url) {
+    var label = url.split('/').pop();
     var storyArcs = {
         "rgb": "CHƯƠNG 001>040 - RED GREEN BLUE",
         "yel": "CHƯƠNG 041>090 - YELLOW",
@@ -22,8 +23,8 @@ function execute(url) {
     };
 
     var defaultCover = "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEi4KF2_qBF9ST1f78iysKGiE5EKMc8r6K9aUGEDIX0INOpN6rDz1MAuRTxpXnZ0GWe5vhYY7uJN1aSiAyVXnaaCoN6M6oubnYR9069YzpLfiRpapUZIHBeyW6uqm22Kj4SFHNEmwo0OKnkbfiykT67e60QhFfMro_gn7bsIx2AFH3lXkUSHbSxVsKpmgd6O/w1200-h630-p-k-no-nu/000.jpg";
-    var name = storyArcs[url] || "Pokémon Đặc Biệt";
-    if (url !== 'champ' && name !== "Pokémon Đặc Biệt") {
+    var name = storyArcs[label] || "Pokémon Đặc Biệt";
+    if (label !== 'champ' && name !== "Pokémon Đặc Biệt") {
         name = "Pokémon Đặc Biệt - " + name;
     }
 
