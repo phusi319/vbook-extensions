@@ -1,0 +1,22 @@
+{
+  "metadata": {
+    "name": "PokemonSpecial",
+    "author": "Antigravity",
+    "version": 1,
+    "source": "https://www.pokemonspecial.com",
+    "regexp": "pokemonspecial\\.com\\/(?:p\\/|search\\/label\\/)?.*",
+    "description": "Đọc truyện Pokemon Đặc Biệt",
+    "local": "vi_VN",
+    "language": "javascript",
+    "type": "comic"
+  },
+  "script": {
+    "home": "home.js",
+    "genre": "genre.js",
+    "detail": "detail.js",
+    "search": "search.js",
+    "gen": "gen.js",
+    "toc": "toc.js",
+    "chap": "chap.js"
+  }
+}

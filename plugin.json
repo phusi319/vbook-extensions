@@ -80,6 +80,17 @@
       "description": "Đọc Light Novel trên Hako - Cổng Light Novel Việt Nam",
       "type": "novel",
       "locale": "vi_VN"
+    },
+    {
+      "name": "PokemonSpecial",
+      "author": "phusi319",
+      "path": "https://raw.githubusercontent.com/phusi319/vbook-extensions/main/pokemonspecial/plugin.zip?v=1",
+      "version": 1,
+      "source": "https://www.pokemonspecial.com",
+      "icon": "https://raw.githubusercontent.com/phusi319/vbook-extensions/main/pokemonspecial/icon.png",
+      "description": "Đọc truyện Pokemon Đặc Biệt",
+      "type": "comic",
+      "locale": "vi_VN"
     }
   ]
 }
