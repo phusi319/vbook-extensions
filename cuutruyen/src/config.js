@@ -24,6 +24,7 @@ function fetchApi(url) {
     }
     
     if (rawText) {
+        rawText = String(rawText);
         rawText = rawText.replace(/storage-ct\.lrclib\.net/g, "storage-bravo.cuutruyen.net");
         rawText = rawText.replace(/storage-ct-riften\.site/g, "storage-charlie.cuutruyen.net");
         return JSON.parse(rawText);
