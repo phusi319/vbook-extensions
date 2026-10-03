@@ -4,11 +4,9 @@ const API_URL = "https://cuutruyen.net/api/v2";
 function fetchApi(url) {
     var rawText = null;
     try {
-        var res = Http.get(url).headers({
-            "User-Agent": "Mozilla/5.0"
-        });
-        if (res.status() === 200) {
-            rawText = res.string();
+        var res = fetch(url);
+        if (res.ok) {
+            rawText = res.text();
         }
     } catch (e) {}
 
@@ -27,7 +25,9 @@ function fetchApi(url) {
         rawText = String(rawText);
         rawText = rawText.replace(/storage-ct\.lrclib\.net/g, "storage-bravo.cuutruyen.net");
         rawText = rawText.replace(/storage-ct-riften\.site/g, "storage-charlie.cuutruyen.net");
-        rawText = rawText.replace(/"cover_url"\s*:\s*"(https?:\/\/[^"]+)"/g, '"cover_url":"https://images.weserv.nl/?url=$1"');
+        rawText = rawText.replace(/"cover_url"\s*:\s*"(https?:\/\/[^"]+)"/g, function(match, p1) {
+            return '"cover_url":"https://images.weserv.nl/?url=' + encodeURIComponent(p1) + '&output=jpg"';
+        });
         return JSON.parse(rawText);
     }
     
