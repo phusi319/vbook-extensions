@@ -40,8 +40,8 @@
     {
       "name": "Cứu Truyện",
       "author": "phusi319",
-      "path": "https://raw.githubusercontent.com/phusi319/vbook-extensions/main/cuutruyen/plugin.zip?v=15",
-      "version": 15,
+      "path": "https://raw.githubusercontent.com/phusi319/vbook-extensions/main/cuutruyen/plugin.zip?v=16",
+      "version": 16,
       "source": "https://cuutruyen.net",
       "icon": "https://raw.githubusercontent.com/phusi319/vbook-extensions/main/cuutruyen/icon.png",
       "description": "Đọc truyện trên trang Cứu Truyện",
@@ -84,8 +84,8 @@
     {
       "name": "PokemonSpecial",
       "author": "phusi319",
-      "path": "https://raw.githubusercontent.com/phusi319/vbook-extensions/main/pokemonspecial/plugin.zip?v=3",
-      "version": 3,
+      "path": "https://raw.githubusercontent.com/phusi319/vbook-extensions/main/pokemonspecial/plugin.zip?v=4",
+      "version": 4,
       "source": "https://www.pokemonspecial.com",
       "icon": "https://raw.githubusercontent.com/phusi319/vbook-extensions/main/pokemonspecial/icon.png",
       "description": "Đọc truyện Pokemon Đặc Biệt",
