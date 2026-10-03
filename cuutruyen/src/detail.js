@@ -12,7 +12,7 @@ function execute(url) {
 
         var author = data.author ? data.author.name : "Đang cập nhật";
         var team = data.team ? data.team.name : "";
-        var titles = (data.titles && data.titles.length) ? data.titles.map(function(t) { return t.title; }).join(", ") : "";
+        var titles = (data.titles && data.titles.length) ? data.titles.map(function(t) { return t.name; }).join(", ") : "";
         var genres = (data.tags && data.tags.length) ? data.tags.map(function(t) { return t.name; }).join(", ") : "";
         var isCompleted = false;
         if (data.tags) {

@@ -27,6 +27,7 @@ function fetchApi(url) {
         rawText = String(rawText);
         rawText = rawText.replace(/storage-ct\.lrclib\.net/g, "storage-bravo.cuutruyen.net");
         rawText = rawText.replace(/storage-ct-riften\.site/g, "storage-charlie.cuutruyen.net");
+        rawText = rawText.replace(/"cover_url"\s*:\s*"(https?:\/\/[^"]+)"/g, '"cover_url":"https://images.weserv.nl/?url=$1"');
         return JSON.parse(rawText);
     }
     
