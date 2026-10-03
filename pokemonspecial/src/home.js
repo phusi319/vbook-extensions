@@ -1,6 +1,6 @@
 function execute() {
     return Response.success([
-        {title: "Pokémon Đặc Biệt", input: "main", script: "gen"},
-        {title: "Festival of Champions", input: "champ", script: "gen"}
+        {title: "Pokémon Đặc Biệt", input: "main", script: "gen.js"},
+        {title: "Festival of Champions", input: "champ", script: "gen.js"}
     ]);
 }
