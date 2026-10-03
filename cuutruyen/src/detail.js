@@ -54,7 +54,7 @@ function execute(url) {
 
         return Response.success({
             name: data.name,
-            cover: data.cover_url,
+            cover: data.cover_url ? "https://images.weserv.nl/?url=" + encodeURIComponent(data.cover_url) + "&output=jpg" : "",
             author: author,
             description: description,
             detail: detail,

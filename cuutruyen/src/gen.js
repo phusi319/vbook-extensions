@@ -18,7 +18,7 @@ function execute(url, page) {
             novels.push({
                 name: item.name,
                 link: BASE_URL + "/mangas/" + item.id,
-                cover: item.cover_url,
+                cover: item.cover_url ? "https://images.weserv.nl/?url=" + encodeURIComponent(item.cover_url) + "&output=jpg" : "",
                 description: item.newest_chapter_number ? "Chapter " + item.newest_chapter_number : "",
                 host: BASE_URL
             });
