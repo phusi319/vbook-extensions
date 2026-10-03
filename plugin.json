@@ -91,6 +91,17 @@
       "description": "Đọc truyện Pokemon Đặc Biệt",
       "type": "comic",
       "locale": "vi_VN"
+    },
+    {
+      "name": "TruyenDich",
+      "author": "phusi319",
+      "path": "https://raw.githubusercontent.com/phusi319/vbook-extensions/main/truyendich/plugin.zip?v=1",
+      "version": 1,
+      "source": "https://truyendich.space",
+      "icon": "https://raw.githubusercontent.com/phusi319/vbook-extensions/main/truyendich/icon.png",
+      "description": "Đọc truyện chữ trên TruyenDich.space",
+      "type": "novel",
+      "locale": "vi_VN"
     }
   ]
 }
