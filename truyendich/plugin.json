@@ -1,0 +1,21 @@
+{
+  "metadata": {
+    "name": "TruyenDich",
+    "author": "phusi319",
+    "version": 1,
+    "source": "https://truyendich.space",
+    "regexp": "(www.)?truyendich\\.space/doc-truyen/.*",
+    "description": "Đọc truyện chữ trên TruyenDich.space",
+    "locale": "vi_VN",
+    "language": "javascript",
+    "type": "novel"
+  },
+  "script": {
+    "home": "home.js",
+    "genre": "genre.js",
+    "detail": "detail.js",
+    "toc": "toc.js",
+    "chap": "chap.js",
+    "search": "search.js"
+  }
+}
