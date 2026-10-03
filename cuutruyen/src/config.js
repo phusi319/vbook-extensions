@@ -2,24 +2,32 @@ const BASE_URL = "https://cuutruyen.net";
 const API_URL = "https://cuutruyen.net/api/v2";
 
 function fetchApi(url) {
+    var rawText = null;
     try {
         var res = Http.get(url).headers({
             "User-Agent": "Mozilla/5.0"
         });
         if (res.status() === 200) {
-            return JSON.parse(res.string());
+            rawText = res.string();
         }
     } catch (e) {}
 
-    try {
-        var browser = Engine.newBrowser();
-        var doc = browser.launch(url, 5000);
-        browser.close();
-        if (doc) {
-            var bodyText = doc.select('body').text();
-            return JSON.parse(bodyText);
-        }
-    } catch (e) {}
+    if (!rawText) {
+        try {
+            var browser = Engine.newBrowser();
+            var doc = browser.launch(url, 5000);
+            browser.close();
+            if (doc) {
+                rawText = doc.select('body').text();
+            }
+        } catch (e) {}
+    }
+    
+    if (rawText) {
+        rawText = rawText.replace(/storage-ct\.lrclib\.net/g, "storage-bravo.cuutruyen.net");
+        rawText = rawText.replace(/storage-ct-riften\.site/g, "storage-charlie.cuutruyen.net");
+        return JSON.parse(rawText);
+    }
     
     return null;
 }
